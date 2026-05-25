@@ -1,0 +1,237 @@
+@import "tailwindcss";
+@source "../index.html";
+@source "./**/*.{js,ts,jsx,tsx}";
+
+/* ═══════════════════════════════════════════════════════════
+   PrepPilot Design System
+   ═══════════════════════════════════════════════════════════ */
+
+@theme {
+  --color-primary-50: #eef2ff;
+  --color-primary-100: #e0e7ff;
+  --color-primary-200: #c7d2fe;
+  --color-primary-300: #a5b4fc;
+  --color-primary-400: #818cf8;
+  --color-primary-500: #6366f1;
+  --color-primary-600: #4f46e5;
+  --color-primary-700: #4338ca;
+  --color-primary-800: #3730a3;
+  --color-primary-900: #312e81;
+  --color-primary-950: #1e1b4b;
+
+  --color-accent-400: #34d399;
+  --color-accent-500: #10b981;
+  --color-accent-600: #059669;
+
+  --color-danger-400: #f87171;
+  --color-danger-500: #ef4444;
+  --color-danger-600: #dc2626;
+
+  --color-warning-400: #fbbf24;
+  --color-warning-500: #f59e0b;
+
+  --color-surface-50: #f8fafc;
+  --color-surface-100: #f1f5f9;
+  --color-surface-200: #e2e8f0;
+  --color-surface-700: #334155;
+  --color-surface-800: #1e293b;
+  --color-surface-900: #0f172a;
+  --color-surface-950: #020617;
+
+  --font-sans: 'Inter', 'system-ui', sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+}
+
+/* ─── Base Styles ──────────────────────────────────────── */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-sans);
+  background: var(--color-surface-950);
+  color: var(--color-surface-100);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ─── Scrollbar Styling ────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-surface-900);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-surface-700);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-primary-600);
+}
+
+/* ─── Glass Card Effect ────────────────────────────────── */
+.glass {
+  background: rgba(30, 41, 59, 0.6);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(99, 102, 241, 0.15);
+  border-radius: 16px;
+}
+
+.glass-sm {
+  background: rgba(30, 41, 59, 0.4);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(99, 102, 241, 0.1);
+  border-radius: 12px;
+}
+
+/* ─── Gradient Text ────────────────────────────────────── */
+.gradient-text {
+  background: linear-gradient(135deg, #818cf8, #6366f1, #34d399);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ─── Glow Effects ─────────────────────────────────────── */
+.glow {
+  box-shadow: 0 0 20px rgba(99, 102, 241, 0.15),
+              0 0 60px rgba(99, 102, 241, 0.05);
+}
+
+.glow-accent {
+  box-shadow: 0 0 20px rgba(16, 185, 129, 0.15),
+              0 0 60px rgba(16, 185, 129, 0.05);
+}
+
+/* ─── Button Base ──────────────────────────────────────── */
+.btn-primary {
+  background: linear-gradient(135deg, var(--color-primary-600), var(--color-primary-700));
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 12px;
+  display: inline-block;
+  text-align: center;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.95rem;
+}
+.btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 20px rgba(99, 102, 241, 0.4);
+}
+.btn-primary:active {
+  transform: translateY(0);
+}
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-secondary {
+  background: rgba(99, 102, 241, 0.1);
+  color: var(--color-primary-300);
+  padding: 0.75rem 1.5rem;
+  border-radius: 12px;
+  display: inline-block;
+  text-align: center;
+  font-weight: 600;
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.95rem;
+}
+.btn-secondary:hover {
+  background: rgba(99, 102, 241, 0.2);
+  border-color: rgba(99, 102, 241, 0.4);
+}
+
+/* ─── Input Styling ────────────────────────────────────── */
+.input-field {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: rgba(15, 23, 42, 0.8);
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  border-radius: 12px;
+  color: var(--color-surface-100);
+  font-size: 0.95rem;
+  font-family: var(--font-sans);
+  transition: all 0.2s ease;
+  outline: none;
+}
+.input-field:focus {
+  border-color: var(--color-primary-500);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+}
+.input-field::placeholder {
+  color: var(--color-surface-700);
+}
+
+/* ─── Animations ───────────────────────────────────────── */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 15px rgba(99, 102, 241, 0.2); }
+  50% { box-shadow: 0 0 30px rgba(99, 102, 241, 0.4); }
+}
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.4s ease-out;
+}
+.animate-slide-up {
+  animation: slideUp 0.5s ease-out;
+}
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+/* ─── Hiring Badge Colors ──────────────────────────────── */
+.badge-strong-hire {
+  background: linear-gradient(135deg, #059669, #10b981);
+  color: white;
+}
+.badge-hire {
+  background: linear-gradient(135deg, #0284c7, #38bdf8);
+  color: white;
+}
+.badge-borderline {
+  background: linear-gradient(135deg, #d97706, #fbbf24);
+  color: #1e293b;
+}
+.badge-no-hire {
+  background: linear-gradient(135deg, #dc2626, #f87171);
+  color: white;
+}
+
+/* ─── Provider Badge Colors ────────────────────────────── */
+.provider-claude { background: #d4a574; color: #1e293b; }
+.provider-openai { background: #10a37f; color: white; }
+.provider-groq { background: #f55036; color: white; }
+
+/* ─── Monaco Editor Container ──────────────────────────── */
+.monaco-container {
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid rgba(99, 102, 241, 0.15);
+}
