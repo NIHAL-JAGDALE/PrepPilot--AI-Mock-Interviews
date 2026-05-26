@@ -18,7 +18,18 @@ const PORT = process.env.PORT || 3001;
 app.use(cors({
   origin: process.env.NODE_ENV === 'production'
     ? process.env.FRONTEND_URL
+<<<<<<< HEAD
     : 'http://localhost:5173',
+=======
+    : (origin, callback) => {
+      // Allow any localhost port in development (Vite may use 5173, 5174, etc.)
+      if (!origin || /^http:\/\/localhost:\d+$/.test(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
+>>>>>>> origin/v1.2
   credentials: true,
 }));
 app.use(express.json({ limit: '10mb' }));
