@@ -64,18 +64,24 @@ export const authAPI = {
 // ─── SESSION HELPERS ──────────────────────────────────────
 
 export const sessionAPI = {
+<<<<<<< HEAD
   extractResume: (formData) => client.post('/sessions/extract-resume', formData, {
     transformRequest: [(data, headers) => {
       delete headers['Content-Type'];
       return data;
     }]
   }),
+=======
+>>>>>>> e8ac259e83537cb5da4f881a7ccdc095ce6275b1
   start: (data) => client.post('/sessions/start', data),
   list: () => client.get('/sessions'),
   getById: (id) => client.get(`/sessions/${id}`),
   sendMessage: (id, content) => client.post(`/sessions/${id}/message`, { content }),
   end: (id) => client.post(`/sessions/${id}/end`),
+<<<<<<< HEAD
   updateResume: (id, resume_text) => client.post(`/sessions/${id}/resume`, { resume_text }),
+=======
+>>>>>>> e8ac259e83537cb5da4f881a7ccdc095ce6275b1
 };
 
 // ─── COMPILER HELPERS ─────────────────────────────────────
@@ -89,7 +95,10 @@ export const compilerAPI = {
 
 export const problemAPI = {
   fetch: (params) => client.get('/problems/fetch', { params }),
+<<<<<<< HEAD
   getBySlug: (slug) => client.get(`/problems/${slug}`),
+=======
+>>>>>>> e8ac259e83537cb5da4f881a7ccdc095ce6275b1
 };
 
 // ─── REPORT HELPERS ───────────────────────────────────────

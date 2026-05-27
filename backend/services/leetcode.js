@@ -62,11 +62,14 @@ const QUESTION_QUERY = `
       topicTags {
         name
       }
+<<<<<<< HEAD
       codeSnippets {
         lang
         langSlug
         code
       }
+=======
+>>>>>>> e8ac259e83537cb5da4f881a7ccdc095ce6275b1
     }
   }
 `;
@@ -77,7 +80,11 @@ const QUESTION_QUERY = `
  * @param {string} slug - The problem's URL slug (e.g., 'two-sum')
  * @returns {object} { title, difficulty, content, examples, topicTags, slug }
  */
+<<<<<<< HEAD
 export async function fetchProblemBySlug(slug) {
+=======
+async function fetchProblemBySlug(slug) {
+>>>>>>> e8ac259e83537cb5da4f881a7ccdc095ce6275b1
   // Check cache first
   if (problemCache.has(slug)) {
     console.log(`📋 LeetCode problem "${slug}" served from cache`);
@@ -116,7 +123,10 @@ export async function fetchProblemBySlug(slug) {
       content: question.content, // HTML content with problem description
       examples: question.exampleTestcases || '',
       topicTags: question.topicTags?.map(tag => tag.name) || [],
+<<<<<<< HEAD
       codeSnippets: question.codeSnippets || [],
+=======
+>>>>>>> e8ac259e83537cb5da4f881a7ccdc095ce6275b1
     };
 
     // Cache the result
@@ -252,4 +262,8 @@ Explanation: The elevation map is represented by array [0,1,0,2,1,0,1,3,2,1,2,1]
   return fallbacks[difficulty] || fallbacks.medium;
 }
 
+<<<<<<< HEAD
 export default { fetchProblemBySlug, getRandomProblem, getDifficulty, getFallbackProblem };
+=======
+export default { getRandomProblem, getDifficulty, getFallbackProblem };
+>>>>>>> e8ac259e83537cb5da4f881a7ccdc095ce6275b1

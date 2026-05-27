@@ -4,6 +4,7 @@ import pool from '../db/index.js';
 import { routeMessage, getFirstQuestion } from '../services/aiRouter.js';
 import { getRandomProblem, getFallbackProblem, getDifficulty } from '../services/leetcode.js';
 import { parseAndSaveReport } from '../services/reportParser.js';
+<<<<<<< HEAD
 import multer from 'multer';
 import { createRequire } from 'module';
 const require = createRequire(import.meta.url);
@@ -30,10 +31,15 @@ function detectControlCommand(content) {
   if (trimmed === 'skip resume') return 'skip_resume';
   return null;
 }
+=======
+
+const router = express.Router();
+>>>>>>> e8ac259e83537cb5da4f881a7ccdc095ce6275b1
 
 // All session routes require authentication
 router.use(auth);
 
+<<<<<<< HEAD
 // ─── EXTRACT RESUME TEXT ──────────────────────────────────
 // POST /api/sessions/extract-resume
 // Parses an uploaded resume file (PDF, DOCX, TXT) and returns the text
@@ -78,6 +84,11 @@ router.post('/extract-resume', upload.single('resume'), async (req, res) => {
 // ─── START SESSION ────────────────────────────────────────
 // POST /api/sessions/start
 // Body: { company_type, role_type, resume_text }
+=======
+// ─── START SESSION ────────────────────────────────────────
+// POST /api/sessions/start
+// Body: { company_type, role_type }
+>>>>>>> e8ac259e83537cb5da4f881a7ccdc095ce6275b1
 // Returns: { session_id, company_type, role_type, status }
 //
 // Creates a new interview session in the DB. The AI first question
@@ -89,7 +100,11 @@ router.post('/extract-resume', upload.single('resume'), async (req, res) => {
 //   as a safety net.
 router.post('/start', async (req, res) => {
   try {
+<<<<<<< HEAD
     const { company_type, role_type, resume_text } = req.body;
+=======
+    const { company_type, role_type } = req.body;
+>>>>>>> e8ac259e83537cb5da4f881a7ccdc095ce6275b1
 
     // ── Validate input ──
     const validCompanyTypes = ['startup', 'mnc', 'faang'];
@@ -107,6 +122,7 @@ router.post('/start', async (req, res) => {
       });
     }
 
+<<<<<<< HEAD
     if (!resume_text || resume_text.trim().length === 0) {
       return res.status(400).json({
         error: 'Resume is required to start the interview.',
@@ -119,11 +135,20 @@ router.post('/start', async (req, res) => {
        VALUES ($1, $2, $3, 'active', 'claude', 0, 0, $4)
        RETURNING id, company_type, role_type, status, current_provider, turn_count, current_round, created_at`,
       [req.user.userId, company_type, role_type, resume_text || null]
+=======
+    // ── Create session ──
+    const result = await pool.query(
+      `INSERT INTO sessions (user_id, company_type, role_type, status, current_provider, turn_count)
+       VALUES ($1, $2, $3, 'active', 'claude', 0)
+       RETURNING id, company_type, role_type, status, current_provider, turn_count, created_at`,
+      [req.user.userId, company_type, role_type]
+>>>>>>> e8ac259e83537cb5da4f881a7ccdc095ce6275b1
     );
 
     const session = result.rows[0];
 
     console.log(`🎯 New session started: ${session.id} (${company_type}/${role_type}) by user ${req.user.userId}`);
+<<<<<<< HEAD
     if (resume_text) console.log(`📄 Resume provided (${resume_text.length} chars)`);
 
     // ── Get the first AI message ──
@@ -152,6 +177,16 @@ router.post('/start', async (req, res) => {
       }
     } catch (aiError) {
       console.error('Failed to get first question:', aiError.message);
+=======
+
+    // ── Get the first AI question (welcome + Q1) ──
+    let firstQuestion = null;
+    try {
+      firstQuestion = await getFirstQuestion(session.id);
+    } catch (aiError) {
+      console.error('Failed to get first question:', aiError.message);
+      // Session is created, but AI failed — frontend can retry via /message
+>>>>>>> e8ac259e83537cb5da4f881a7ccdc095ce6275b1
     }
 
     res.status(201).json({
@@ -161,11 +196,17 @@ router.post('/start', async (req, res) => {
       status: session.status,
       current_provider: session.current_provider,
       turn_count: session.turn_count,
+<<<<<<< HEAD
       current_round: detectedRound || (session.current_round || 0),
       created_at: session.created_at,
       first_question: firstQuestion?.reply || null,
       provider: firstQuestion?.provider || null,
       resume_provided: !!resume_text,
+=======
+      created_at: session.created_at,
+      first_question: firstQuestion?.reply || null,
+      provider: firstQuestion?.provider || null,
+>>>>>>> e8ac259e83537cb5da4f881a7ccdc095ce6275b1
     });
   } catch (error) {
     console.error('Start session error:', error.message);
@@ -212,8 +253,12 @@ router.get('/:id', async (req, res) => {
     // ── Fetch session ──
     const sessionResult = await pool.query(
       `SELECT id, user_id, company_type, role_type, status,
+<<<<<<< HEAD
               current_provider, turn_count, current_round, total_score,
               resume_text, created_at
+=======
+              current_provider, turn_count, total_score, created_at
+>>>>>>> e8ac259e83537cb5da4f881a7ccdc095ce6275b1
        FROM sessions
        WHERE id = $1 AND user_id = $2`,
       [id, req.user.userId]
@@ -255,10 +300,14 @@ router.get('/:id', async (req, res) => {
     );
 
     res.json({
+<<<<<<< HEAD
       session: {
         ...session,
         resume_provided: !!(session.resume_text && session.resume_text.trim().length > 0),
       },
+=======
+      session,
+>>>>>>> e8ac259e83537cb5da4f881a7ccdc095ce6275b1
       messages: messagesResult.rows,
       dsa_problems: dsaResult.rows,
       evaluations: evalResult.rows,
@@ -291,7 +340,11 @@ router.post('/:id/message', async (req, res) => {
 
     // ── Verify session belongs to user and is active ──
     const sessionResult = await pool.query(
+<<<<<<< HEAD
       `SELECT id, user_id, company_type, role_type, status, turn_count, current_round
+=======
+      `SELECT id, user_id, company_type, role_type, status, turn_count
+>>>>>>> e8ac259e83537cb5da4f881a7ccdc095ce6275b1
        FROM sessions
        WHERE id = $1 AND user_id = $2`,
       [id, req.user.userId]
@@ -307,6 +360,7 @@ router.post('/:id/message', async (req, res) => {
       return res.status(400).json({ error: 'This session has already been completed.' });
     }
 
+<<<<<<< HEAD
     // ── Detect control commands ──
     const command = detectControlCommand(content);
     let controlMeta = null;
@@ -328,12 +382,27 @@ router.post('/:id/message', async (req, res) => {
     // We cap DSA problem fetching at reasonable limits (turns 2-6)
     if (currentRound === 1 && upcomingTurn >= 2 && upcomingTurn <= 6 && !command) {
       try {
+=======
+    // ── Route message through AI ──
+    const aiResponse = await routeMessage(id, content.trim());
+
+    // ── DSA Detection (turns 2, 3, 4 are DSA rounds) ──
+    // turn_count is incremented inside routeMessage, so the NEW turn
+    // is aiResponse.turnCount. DSA turns are 2, 3, 4.
+    let dsaProblem = null;
+    const currentTurn = aiResponse.turnCount;
+
+    if ([2, 3, 4].includes(currentTurn)) {
+      try {
+        // Get already-used slugs to avoid repeats
+>>>>>>> e8ac259e83537cb5da4f881a7ccdc095ce6275b1
         const usedResult = await pool.query(
           'SELECT leetcode_slug FROM dsa_problems WHERE session_id = $1',
           [id]
         );
         const usedSlugs = usedResult.rows.map(r => r.leetcode_slug);
 
+<<<<<<< HEAD
         dsaProblem = await getRandomProblem(session.company_type, usedSlugs);
 
         await pool.query(
@@ -345,11 +414,28 @@ router.post('/:id/message', async (req, res) => {
         console.log(`🧩 DSA problem pre-fetched for turn ${upcomingTurn}: ${dsaProblem.title}`);
       } catch (dsaError) {
         console.error('DSA problem fetch failed (non-fatal):', dsaError.message);
+=======
+        // Fetch a problem
+        dsaProblem = await getRandomProblem(session.company_type, usedSlugs);
+
+        // Save to dsa_problems table
+        await pool.query(
+          `INSERT INTO dsa_problems (session_id, turn_number, leetcode_slug, title, difficulty)
+           VALUES ($1, $2, $3, $4, $5)`,
+          [id, currentTurn, dsaProblem.slug, dsaProblem.title, dsaProblem.difficulty]
+        );
+
+        console.log(`🧩 DSA problem fetched for turn ${currentTurn}: ${dsaProblem.title}`);
+      } catch (dsaError) {
+        console.error('DSA problem fetch failed (non-fatal):', dsaError.message);
+        // Use fallback problem
+>>>>>>> e8ac259e83537cb5da4f881a7ccdc095ce6275b1
         const difficulty = getDifficulty(session.company_type);
         dsaProblem = getFallbackProblem(difficulty);
       }
     }
 
+<<<<<<< HEAD
     // ── Build the content to send to AI ──
     let aiContent = content.trim();
 
@@ -394,12 +480,22 @@ router.post('/:id/message', async (req, res) => {
       console.log(`🔄 Round transition: ${currentRound} → ${detectedRound}`);
     }
 
+=======
+>>>>>>> e8ac259e83537cb5da4f881a7ccdc095ce6275b1
     // ── Check for INTERVIEW_COMPLETE ──
     const isComplete = aiResponse.reply.includes('INTERVIEW_COMPLETE');
     let report = null;
 
     if (isComplete) {
+<<<<<<< HEAD
       report = await parseAndSaveReport(id, aiResponse.reply);
+=======
+      // Parse and save the structured report
+      report = await parseAndSaveReport(id, aiResponse.reply);
+
+      // Mark session as completed (parseAndSaveReport also does this,
+      // but we do it here as a safety net in case parsing fails)
+>>>>>>> e8ac259e83537cb5da4f881a7ccdc095ce6275b1
       await pool.query(
         `UPDATE sessions SET status = 'completed' WHERE id = $1`,
         [id]
@@ -414,12 +510,19 @@ router.post('/:id/message', async (req, res) => {
       model: aiResponse.model,
       token_stats: aiResponse.tokenStats,
       cache_status: aiResponse.cacheStatus,
+<<<<<<< HEAD
       turn_count: aiResponse.turnCount,
       current_round: detectedRound,
       dsa_problem: dsaProblem,
       is_complete: isComplete,
       report: report,
       control_command: command,
+=======
+      turn_count: currentTurn,
+      dsa_problem: dsaProblem,
+      is_complete: isComplete,
+      report: report,
+>>>>>>> e8ac259e83537cb5da4f881a7ccdc095ce6275b1
     });
   } catch (error) {
     console.error('Message error:', error.message);
@@ -431,6 +534,7 @@ router.post('/:id/message', async (req, res) => {
   }
 });
 
+<<<<<<< HEAD
 // ─── UPDATE RESUME ────────────────────────────────────────
 // POST /api/sessions/:id/resume
 // Body: { resume_text }
@@ -471,6 +575,8 @@ router.post('/:id/resume', async (req, res) => {
   }
 });
 
+=======
+>>>>>>> e8ac259e83537cb5da4f881a7ccdc095ce6275b1
 // ─── END SESSION ──────────────────────────────────────────
 // POST /api/sessions/:id/end
 // Forces a session to end and marks it as completed.

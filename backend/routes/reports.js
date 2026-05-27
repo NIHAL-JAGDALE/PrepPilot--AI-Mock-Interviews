@@ -22,7 +22,11 @@ router.get('/:sessionId', async (req, res) => {
     // ── Verify session belongs to user ──
     const sessionResult = await pool.query(
       `SELECT id, user_id, company_type, role_type, status,
+<<<<<<< HEAD
               current_provider, turn_count, total_score, created_at
+=======
+              turn_count, total_score, created_at
+>>>>>>> e8ac259e83537cb5da4f881a7ccdc095ce6275b1
        FROM sessions
        WHERE id = $1 AND user_id = $2`,
       [sessionId, req.user.userId]
@@ -83,6 +87,7 @@ router.get('/:sessionId', async (req, res) => {
 
     const cacheStats = getSessionCacheStats(messageStats.rows);
 
+<<<<<<< HEAD
     // Extract primary provider from messages
     const providerCounts = {};
     for (const msg of messageStats.rows) {
@@ -93,13 +98,18 @@ router.get('/:sessionId', async (req, res) => {
     const primaryProvider = Object.keys(providerCounts).sort((a, b) => providerCounts[b] - providerCounts[a])[0]
       || session.current_provider || 'claude';
 
+=======
+>>>>>>> e8ac259e83537cb5da4f881a7ccdc095ce6275b1
     res.json({
       session: {
         id: session.id,
         company_type: session.company_type,
         role_type: session.role_type,
         status: session.status,
+<<<<<<< HEAD
         current_provider: session.current_provider,
+=======
+>>>>>>> e8ac259e83537cb5da4f881a7ccdc095ce6275b1
         turn_count: session.turn_count,
         total_score: session.total_score,
         created_at: session.created_at,
@@ -116,7 +126,11 @@ router.get('/:sessionId', async (req, res) => {
       },
       dsa_attempts: dsaResult.rows,
       evaluations: evalResult.rows,
+<<<<<<< HEAD
       cache_stats: { ...cacheStats, provider: primaryProvider },
+=======
+      cache_stats: cacheStats,
+>>>>>>> e8ac259e83537cb5da4f881a7ccdc095ce6275b1
     });
   } catch (error) {
     console.error('Get report error:', error.message);
