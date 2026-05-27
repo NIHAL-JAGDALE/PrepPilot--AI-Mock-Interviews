@@ -48,6 +48,36 @@ export function parseReport(aiResponse) {
     report.percentile = percentileMatch ? parseInt(percentileMatch[1]) : null;
 
     // ── Round Breakdown ──
+<<<<<<< HEAD
+    // V2 Format Check (3 Rounds)
+    const r1Match = aiResponse.match(/Round\s*1.*?:\s*(\d+(?:\.\d+)?)\s*\/\s*10/i);
+    const r2Match = aiResponse.match(/Round\s*2.*?:\s*(\d+(?:\.\d+)?)\s*\/\s*10/i);
+    const r3Match = aiResponse.match(/Round\s*3.*?:\s*(\d+(?:\.\d+)?)\s*\/\s*10/i);
+
+    if (r1Match || r2Match || r3Match) {
+      report.intro_score = r1Match ? Math.round(parseFloat(r1Match[1])) : null;
+      report.dsa_score = null;
+      report.cs_score = r2Match ? Math.round(parseFloat(r2Match[1])) : null;
+      report.project_score = null;
+      report.hr_score = r3Match ? Math.round(parseFloat(r3Match[1])) : null;
+    } else {
+      // V1 Format Check (5 Rounds)
+      const introMatch = aiResponse.match(/Introduction\s*\(Q1\):\s*(\d+)\s*\/\s*10/i);
+      report.intro_score = introMatch ? parseInt(introMatch[1]) : null;
+
+      const dsaMatch = aiResponse.match(/DSA\s*(?:Round)?\s*\(Q2[-–]Q4\):\s*(\d+(?:\.\d+)?)\s*\/\s*10/i);
+      report.dsa_score = dsaMatch ? Math.round(parseFloat(dsaMatch[1])) : null;
+
+      const csMatch = aiResponse.match(/CS\s*Fundamentals?\s*\(Q5[-–]Q6\):\s*(\d+(?:\.\d+)?)\s*\/\s*10/i);
+      report.cs_score = csMatch ? Math.round(parseFloat(csMatch[1])) : null;
+
+      const projectMatch = aiResponse.match(/Project\s*(?:Deep\s*Dive)?\s*\(Q7[-–]Q8\):\s*(\d+(?:\.\d+)?)\s*\/\s*10/i);
+      report.project_score = projectMatch ? Math.round(parseFloat(projectMatch[1])) : null;
+
+      const hrMatch = aiResponse.match(/HR\s*(?:&|and)?\s*Behavioral?\s*\(Q9[-–]Q10\):\s*(\d+(?:\.\d+)?)\s*\/\s*10/i);
+      report.hr_score = hrMatch ? Math.round(parseFloat(hrMatch[1])) : null;
+    }
+=======
     // Introduction (Q1)
     const introMatch = aiResponse.match(/Introduction\s*\(Q1\):\s*(\d+)\s*\/\s*10/i);
     report.intro_score = introMatch ? parseInt(introMatch[1]) : null;
@@ -67,22 +97,50 @@ export function parseReport(aiResponse) {
     // HR & Behavioral (Q9-Q10)
     const hrMatch = aiResponse.match(/HR\s*(?:&|and)?\s*Behavioral?\s*\(Q9[-–]Q10\):\s*(\d+(?:\.\d+)?)\s*\/\s*10/i);
     report.hr_score = hrMatch ? Math.round(parseFloat(hrMatch[1])) : null;
+>>>>>>> e8ac259e83537cb5da4f881a7ccdc095ce6275b1
 
     // ── Strengths ──
     const strengthsMatch = aiResponse.match(
       /TOP\s*3\s*STRENGTHS?:\s*([\s\S]*?)(?=TOP\s*3\s*(?:AREAS?\s*(?:FOR\s*)?IMPROVEMENT|IMPROVEMENT)|HIRING\s*RECOMMENDATION|$)/i
     );
+<<<<<<< HEAD
+    if (strengthsMatch) {
+      const rawStrengths = strengthsMatch[1].trim();
+      // Parse numbered list items (1. xxx, 2. xxx) or bullet points (- xxx)
+      const items = rawStrengths
+        .split(/\n/)
+        .map(line => line.replace(/^\s*(?:\d+[\.\)\-]|[-•*])\s*/, '').trim())
+        .filter(line => line.length > 0);
+      report.strengths = JSON.stringify(items.length > 0 ? items : [rawStrengths]);
+    } else {
+      report.strengths = null;
+    }
+=======
     report.strengths = strengthsMatch
       ? strengthsMatch[1].trim().replace(/^\n+|\n+$/g, '')
       : null;
+>>>>>>> e8ac259e83537cb5da4f881a7ccdc095ce6275b1
 
     // ── Improvements ──
     const improvementsMatch = aiResponse.match(
       /TOP\s*3\s*(?:AREAS?\s*(?:FOR\s*)?)?IMPROVEMENT[S]?:\s*([\s\S]*?)(?=HIRING\s*RECOMMENDATION|$)/i
     );
+<<<<<<< HEAD
+    if (improvementsMatch) {
+      const rawImprovements = improvementsMatch[1].trim();
+      const items = rawImprovements
+        .split(/\n/)
+        .map(line => line.replace(/^\s*(?:\d+[\.\)\-]|[-•*])\s*/, '').trim())
+        .filter(line => line.length > 0);
+      report.improvements = JSON.stringify(items.length > 0 ? items : [rawImprovements]);
+    } else {
+      report.improvements = null;
+    }
+=======
     report.improvements = improvementsMatch
       ? improvementsMatch[1].trim().replace(/^\n+|\n+$/g, '')
       : null;
+>>>>>>> e8ac259e83537cb5da4f881a7ccdc095ce6275b1
 
     // ── Hiring Recommendation ──
     const hiringMatch = aiResponse.match(
@@ -96,9 +154,38 @@ export function parseReport(aiResponse) {
     const studyPlanMatch = aiResponse.match(
       /30[-–]DAY\s*STUDY\s*PLAN:\s*([\s\S]*?)(?=═|$)/i
     );
+<<<<<<< HEAD
+    if (studyPlanMatch) {
+      const rawPlan = studyPlanMatch[1].trim();
+      // Parse "Week N: description" lines
+      const weekRegex = /Week\s*(\d+)\s*:\s*(.+?)(?=Week\s*\d+\s*:|$)/gis;
+      const weeks = [];
+      let match;
+      while ((match = weekRegex.exec(rawPlan)) !== null) {
+        weeks.push({
+          week: `Week ${match[1]}`,
+          task: match[2].trim().replace(/\n+/g, ' '),
+        });
+      }
+      // Fallback: if no "Week N:" pattern found, split by lines
+      if (weeks.length === 0) {
+        const lines = rawPlan.split(/\n/).map(l => l.trim()).filter(l => l.length > 0);
+        lines.forEach((line, idx) => {
+          weeks.push({
+            week: `Week ${idx + 1}`,
+            task: line.replace(/^\s*(?:\d+[\.\)\-]|[-•*])\s*/, '').trim(),
+          });
+        });
+      }
+      report.study_plan = JSON.stringify(weeks);
+    } else {
+      report.study_plan = null;
+    }
+=======
     report.study_plan = studyPlanMatch
       ? studyPlanMatch[1].trim().replace(/^\n+|\n+$/g, '')
       : null;
+>>>>>>> e8ac259e83537cb5da4f881a7ccdc095ce6275b1
 
     // Validate we got at least some data
     const hasData = report.overall_score !== null || report.hiring_recommendation !== null;

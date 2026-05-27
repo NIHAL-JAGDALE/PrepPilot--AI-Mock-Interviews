@@ -46,6 +46,10 @@ router.get('/fetch', async (req, res) => {
       examples: problem.examples,
       topicTags: problem.topicTags,
       slug: problem.slug,
+<<<<<<< HEAD
+      codeSnippets: problem.codeSnippets,
+=======
+>>>>>>> e8ac259e83537cb5da4f881a7ccdc095ce6275b1
     });
   } catch (error) {
     console.error('Problem fetch error:', error.message);
@@ -61,4 +65,26 @@ router.get('/fetch', async (req, res) => {
   }
 });
 
+<<<<<<< HEAD
+router.get('/:slug', async (req, res) => {
+  try {
+    const { fetchProblemBySlug } = await import('../services/leetcode.js');
+    const problem = await fetchProblemBySlug(req.params.slug);
+    res.json({
+      title: problem.title,
+      difficulty: problem.difficulty,
+      content: problem.content,
+      examples: problem.examples,
+      topicTags: problem.topicTags,
+      slug: problem.slug,
+      codeSnippets: problem.codeSnippets,
+    });
+  } catch (error) {
+    console.error('Problem fetch by slug error:', error.message);
+    res.status(404).json({ error: 'Problem not found or LeetCode API unavailable' });
+  }
+});
+
+=======
+>>>>>>> e8ac259e83537cb5da4f881a7ccdc095ce6275b1
 export default router;

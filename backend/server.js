@@ -19,8 +19,11 @@ app.use(cors({
   origin: process.env.NODE_ENV === 'production'
     ? process.env.FRONTEND_URL
 <<<<<<< HEAD
+=======
+<<<<<<< HEAD
     : 'http://localhost:5173',
 =======
+>>>>>>> e8ac259e83537cb5da4f881a7ccdc095ce6275b1
     : (origin, callback) => {
       // Allow any localhost port in development (Vite may use 5173, 5174, etc.)
       if (!origin || /^http:\/\/localhost:\d+$/.test(origin)) {
@@ -29,7 +32,10 @@ app.use(cors({
         callback(new Error('Not allowed by CORS'));
       }
     },
+<<<<<<< HEAD
+=======
 >>>>>>> origin/v1.2
+>>>>>>> e8ac259e83537cb5da4f881a7ccdc095ce6275b1
   credentials: true,
 }));
 app.use(express.json({ limit: '10mb' }));

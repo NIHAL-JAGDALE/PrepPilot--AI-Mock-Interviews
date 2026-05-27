@@ -4,15 +4,91 @@ import pool from '../db/index.js';
 import { routeMessage, getFirstQuestion } from '../services/aiRouter.js';
 import { getRandomProblem, getFallbackProblem, getDifficulty } from '../services/leetcode.js';
 import { parseAndSaveReport } from '../services/reportParser.js';
+<<<<<<< HEAD
+import multer from 'multer';
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
+const pdfParse = require('pdf-parse');
+import mammoth from 'mammoth';
 
 const router = express.Router();
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } }); // 5MB limit
+
+// ─── CONTROL COMMANDS ─────────────────────────────────────
+// Candidate can type these at any time during the interview.
+const CONTROL_COMMANDS = ['skip', 'hint', 'next round', 'end interview'];
+
+/**
+ * Detect if the user's message is a control command.
+ * Returns the command name if detected, or null.
+ */
+function detectControlCommand(content) {
+  const trimmed = content.trim().toLowerCase();
+  if (trimmed === 'skip') return 'skip';
+  if (trimmed === 'hint') return 'hint';
+  if (trimmed === 'next round') return 'next_round';
+  if (trimmed === 'end interview' || trimmed === 'end') return 'end_interview';
+  if (trimmed === 'skip resume') return 'skip_resume';
+  return null;
+}
+=======
+
+const router = express.Router();
+>>>>>>> e8ac259e83537cb5da4f881a7ccdc095ce6275b1
 
 // All session routes require authentication
 router.use(auth);
 
+<<<<<<< HEAD
+// ─── EXTRACT RESUME TEXT ──────────────────────────────────
+// POST /api/sessions/extract-resume
+// Parses an uploaded resume file (PDF, DOCX, TXT) and returns the text
+router.post('/extract-resume', upload.single('resume'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'No resume file provided.' });
+    }
+
+    const { originalname, buffer, mimetype } = req.file;
+    let text = '';
+    const lowerName = originalname.toLowerCase();
+
+    if (mimetype === 'application/pdf' || lowerName.endsWith('.pdf')) {
+      const pdfData = await pdfParse(buffer);
+      text = pdfData.text;
+    } else if (
+      mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' || 
+      lowerName.endsWith('.docx') ||
+      lowerName.endsWith('.doc')
+    ) {
+      const result = await mammoth.extractRawText({ buffer });
+      text = result.value;
+    } else if (mimetype === 'text/plain' || lowerName.endsWith('.txt')) {
+      text = buffer.toString('utf-8');
+    } else {
+      return res.status(400).json({ error: 'Unsupported file format. Please upload PDF, DOCX, or TXT.' });
+    }
+
+    const cleanedText = text.replace(/\s+/g, ' ').trim();
+    if (!cleanedText) {
+      return res.status(400).json({ error: 'Could not extract text from the file.' });
+    }
+
+    res.json({ text: cleanedText });
+  } catch (error) {
+    console.error('Resume extraction error:', error.message);
+    res.status(500).json({ error: 'Failed to process resume file.' });
+  }
+});
+
+// ─── START SESSION ────────────────────────────────────────
+// POST /api/sessions/start
+// Body: { company_type, role_type, resume_text }
+=======
 // ─── START SESSION ────────────────────────────────────────
 // POST /api/sessions/start
 // Body: { company_type, role_type }
+>>>>>>> e8ac259e83537cb5da4f881a7ccdc095ce6275b1
 // Returns: { session_id, company_type, role_type, status }
 //
 // Creates a new interview session in the DB. The AI first question
@@ -24,7 +100,11 @@ router.use(auth);
 //   as a safety net.
 router.post('/start', async (req, res) => {
   try {
+<<<<<<< HEAD
+    const { company_type, role_type, resume_text } = req.body;
+=======
     const { company_type, role_type } = req.body;
+>>>>>>> e8ac259e83537cb5da4f881a7ccdc095ce6275b1
 
     // ── Validate input ──
     const validCompanyTypes = ['startup', 'mnc', 'faang'];
@@ -42,17 +122,62 @@ router.post('/start', async (req, res) => {
       });
     }
 
+<<<<<<< HEAD
+    if (!resume_text || resume_text.trim().length === 0) {
+      return res.status(400).json({
+        error: 'Resume is required to start the interview.',
+      });
+    }
+
+    // ── Create session (with resume) ──
+    const result = await pool.query(
+      `INSERT INTO sessions (user_id, company_type, role_type, status, current_provider, turn_count, current_round, resume_text)
+       VALUES ($1, $2, $3, 'active', 'claude', 0, 0, $4)
+       RETURNING id, company_type, role_type, status, current_provider, turn_count, current_round, created_at`,
+      [req.user.userId, company_type, role_type, resume_text || null]
+=======
     // ── Create session ──
     const result = await pool.query(
       `INSERT INTO sessions (user_id, company_type, role_type, status, current_provider, turn_count)
        VALUES ($1, $2, $3, 'active', 'claude', 0)
        RETURNING id, company_type, role_type, status, current_provider, turn_count, created_at`,
       [req.user.userId, company_type, role_type]
+>>>>>>> e8ac259e83537cb5da4f881a7ccdc095ce6275b1
     );
 
     const session = result.rows[0];
 
     console.log(`🎯 New session started: ${session.id} (${company_type}/${role_type}) by user ${req.user.userId}`);
+<<<<<<< HEAD
+    if (resume_text) console.log(`📄 Resume provided (${resume_text.length} chars)`);
+
+    // ── Get the first AI message ──
+    // If resume is provided, AI will acknowledge it and start Round 1.
+    // If no resume, AI will ask for the resume first.
+    let firstQuestion = null;
+    let detectedRound = 0;
+    try {
+      const startMsg = resume_text
+        ? `[RESUME PROVIDED]\n${resume_text}\n[END RESUME]\n\nI am ready for the interview. Please begin.`
+        : 'I am ready for the interview. Please begin.';
+      firstQuestion = await routeMessage(session.id, startMsg);
+      
+      // Detect round from AI's first response
+      if (firstQuestion?.reply) {
+        const roundMatch = firstQuestion.reply.match(/ROUND:\s*(\d+)/i);
+        if (roundMatch) {
+          detectedRound = parseInt(roundMatch[1]);
+        } else if (firstQuestion.reply.includes('Round 1')) {
+          detectedRound = 1;
+        }
+        // Update session round in DB
+        if (detectedRound > 0) {
+          await pool.query(`UPDATE sessions SET current_round = $1 WHERE id = $2`, [detectedRound, session.id]);
+        }
+      }
+    } catch (aiError) {
+      console.error('Failed to get first question:', aiError.message);
+=======
 
     // ── Get the first AI question (welcome + Q1) ──
     let firstQuestion = null;
@@ -61,6 +186,7 @@ router.post('/start', async (req, res) => {
     } catch (aiError) {
       console.error('Failed to get first question:', aiError.message);
       // Session is created, but AI failed — frontend can retry via /message
+>>>>>>> e8ac259e83537cb5da4f881a7ccdc095ce6275b1
     }
 
     res.status(201).json({
@@ -70,9 +196,17 @@ router.post('/start', async (req, res) => {
       status: session.status,
       current_provider: session.current_provider,
       turn_count: session.turn_count,
+<<<<<<< HEAD
+      current_round: detectedRound || (session.current_round || 0),
       created_at: session.created_at,
       first_question: firstQuestion?.reply || null,
       provider: firstQuestion?.provider || null,
+      resume_provided: !!resume_text,
+=======
+      created_at: session.created_at,
+      first_question: firstQuestion?.reply || null,
+      provider: firstQuestion?.provider || null,
+>>>>>>> e8ac259e83537cb5da4f881a7ccdc095ce6275b1
     });
   } catch (error) {
     console.error('Start session error:', error.message);
@@ -119,7 +253,12 @@ router.get('/:id', async (req, res) => {
     // ── Fetch session ──
     const sessionResult = await pool.query(
       `SELECT id, user_id, company_type, role_type, status,
+<<<<<<< HEAD
+              current_provider, turn_count, current_round, total_score,
+              resume_text, created_at
+=======
               current_provider, turn_count, total_score, created_at
+>>>>>>> e8ac259e83537cb5da4f881a7ccdc095ce6275b1
        FROM sessions
        WHERE id = $1 AND user_id = $2`,
       [id, req.user.userId]
@@ -161,7 +300,14 @@ router.get('/:id', async (req, res) => {
     );
 
     res.json({
+<<<<<<< HEAD
+      session: {
+        ...session,
+        resume_provided: !!(session.resume_text && session.resume_text.trim().length > 0),
+      },
+=======
       session,
+>>>>>>> e8ac259e83537cb5da4f881a7ccdc095ce6275b1
       messages: messagesResult.rows,
       dsa_problems: dsaResult.rows,
       evaluations: evalResult.rows,
@@ -194,7 +340,11 @@ router.post('/:id/message', async (req, res) => {
 
     // ── Verify session belongs to user and is active ──
     const sessionResult = await pool.query(
+<<<<<<< HEAD
+      `SELECT id, user_id, company_type, role_type, status, turn_count, current_round
+=======
       `SELECT id, user_id, company_type, role_type, status, turn_count
+>>>>>>> e8ac259e83537cb5da4f881a7ccdc095ce6275b1
        FROM sessions
        WHERE id = $1 AND user_id = $2`,
       [id, req.user.userId]
@@ -210,6 +360,29 @@ router.post('/:id/message', async (req, res) => {
       return res.status(400).json({ error: 'This session has already been completed.' });
     }
 
+<<<<<<< HEAD
+    // ── Detect control commands ──
+    const command = detectControlCommand(content);
+    let controlMeta = null;
+
+    if (command) {
+      controlMeta = { command };
+      console.log(`🎮 Control command detected: ${command}`);
+    }
+
+    // ── DSA Pre-fetch: DSA questions are in Round 1 (turns 2+).
+    //    We detect DSA turns when current_round is 1 and turn > 1.
+    //    In v2, DSA can extend beyond 3 questions, so we check if
+    //    the AI is still in Round 1 and it's not the intro question. ──
+    let dsaProblem = null;
+    const upcomingTurn = session.turn_count + 1;
+    const currentRound = session.current_round || 1;
+
+    // DSA turns: Round 1, questions 2+ (turn_count >= 2 in round 1)
+    // We cap DSA problem fetching at reasonable limits (turns 2-6)
+    if (currentRound === 1 && upcomingTurn >= 2 && upcomingTurn <= 6 && !command) {
+      try {
+=======
     // ── Route message through AI ──
     const aiResponse = await routeMessage(id, content.trim());
 
@@ -222,12 +395,26 @@ router.post('/:id/message', async (req, res) => {
     if ([2, 3, 4].includes(currentTurn)) {
       try {
         // Get already-used slugs to avoid repeats
+>>>>>>> e8ac259e83537cb5da4f881a7ccdc095ce6275b1
         const usedResult = await pool.query(
           'SELECT leetcode_slug FROM dsa_problems WHERE session_id = $1',
           [id]
         );
         const usedSlugs = usedResult.rows.map(r => r.leetcode_slug);
 
+<<<<<<< HEAD
+        dsaProblem = await getRandomProblem(session.company_type, usedSlugs);
+
+        await pool.query(
+          `INSERT INTO dsa_problems (session_id, turn_number, leetcode_slug, title, difficulty)
+           VALUES ($1, $2, $3, $4, $5)`,
+          [id, upcomingTurn, dsaProblem.slug, dsaProblem.title, dsaProblem.difficulty]
+        );
+
+        console.log(`🧩 DSA problem pre-fetched for turn ${upcomingTurn}: ${dsaProblem.title}`);
+      } catch (dsaError) {
+        console.error('DSA problem fetch failed (non-fatal):', dsaError.message);
+=======
         // Fetch a problem
         dsaProblem = await getRandomProblem(session.company_type, usedSlugs);
 
@@ -242,21 +429,73 @@ router.post('/:id/message', async (req, res) => {
       } catch (dsaError) {
         console.error('DSA problem fetch failed (non-fatal):', dsaError.message);
         // Use fallback problem
+>>>>>>> e8ac259e83537cb5da4f881a7ccdc095ce6275b1
         const difficulty = getDifficulty(session.company_type);
         dsaProblem = getFallbackProblem(difficulty);
       }
     }
 
+<<<<<<< HEAD
+    // ── Build the content to send to AI ──
+    let aiContent = content.trim();
+
+    // Inject DSA problem reference
+    if (dsaProblem) {
+      aiContent += `\n\n[SYSTEM: The coding problem for this DSA round is "${dsaProblem.title}" (${dsaProblem.difficulty}). Ask the candidate to solve this specific problem. Do NOT invent a different problem. Reference this title exactly in your NEXT QUESTION.]`;
+    }
+
+    // Inject control command context
+    if (command) {
+      const commandInstructions = {
+        skip: '[SYSTEM: The candidate has used the "skip" command. Score this question as 0/10, move to the next question, and say "Question skipped. Let\'s move on."]',
+        hint: '[SYSTEM: The candidate has requested a "hint". Provide a helpful hint WITHOUT revealing the full answer. Internally deduct 1 point from the max possible score for this question.]',
+        next_round: '[SYSTEM: The candidate has requested to move to the "next round". If the minimum question count for the current round has been met, transition to the next round with a proper announcement. If not met, inform them how many more questions they need to answer.]',
+        end_interview: '[SYSTEM: The candidate has requested to "end interview". Generate the INTERVIEW_COMPLETE report immediately based on all questions answered so far. Mark any unanswered rounds as "Not Evaluated".]',
+        skip_resume: '[SYSTEM: The candidate has chosen to skip providing their resume. Proceed directly to Round 1 with general questions. Do not ask for the resume again.]',
+      };
+      aiContent += `\n\n${commandInstructions[command]}`;
+    }
+
+    // ── Route message through AI ──
+    const aiResponse = await routeMessage(id, aiContent);
+
+    // ── Detect round transitions from AI response ──
+    let detectedRound = currentRound;
+    const roundMatch = aiResponse.reply.match(/ROUND:\s*(\d+)/i);
+    if (roundMatch) {
+      detectedRound = parseInt(roundMatch[1]);
+    }
+    // Also detect from transition announcements
+    if (aiResponse.reply.includes('Round 2') && aiResponse.reply.includes('Technical') && currentRound < 2) {
+      detectedRound = 2;
+    } else if (aiResponse.reply.includes('Round 3') && aiResponse.reply.includes('HR') && currentRound < 3) {
+      detectedRound = 3;
+    }
+    // Update current_round if changed
+    if (detectedRound !== currentRound) {
+      await pool.query(
+        `UPDATE sessions SET current_round = $1 WHERE id = $2`,
+        [detectedRound, id]
+      );
+      console.log(`🔄 Round transition: ${currentRound} → ${detectedRound}`);
+    }
+
+=======
+>>>>>>> e8ac259e83537cb5da4f881a7ccdc095ce6275b1
     // ── Check for INTERVIEW_COMPLETE ──
     const isComplete = aiResponse.reply.includes('INTERVIEW_COMPLETE');
     let report = null;
 
     if (isComplete) {
+<<<<<<< HEAD
+      report = await parseAndSaveReport(id, aiResponse.reply);
+=======
       // Parse and save the structured report
       report = await parseAndSaveReport(id, aiResponse.reply);
 
       // Mark session as completed (parseAndSaveReport also does this,
       // but we do it here as a safety net in case parsing fails)
+>>>>>>> e8ac259e83537cb5da4f881a7ccdc095ce6275b1
       await pool.query(
         `UPDATE sessions SET status = 'completed' WHERE id = $1`,
         [id]
@@ -271,10 +510,19 @@ router.post('/:id/message', async (req, res) => {
       model: aiResponse.model,
       token_stats: aiResponse.tokenStats,
       cache_status: aiResponse.cacheStatus,
+<<<<<<< HEAD
+      turn_count: aiResponse.turnCount,
+      current_round: detectedRound,
+      dsa_problem: dsaProblem,
+      is_complete: isComplete,
+      report: report,
+      control_command: command,
+=======
       turn_count: currentTurn,
       dsa_problem: dsaProblem,
       is_complete: isComplete,
       report: report,
+>>>>>>> e8ac259e83537cb5da4f881a7ccdc095ce6275b1
     });
   } catch (error) {
     console.error('Message error:', error.message);
@@ -286,6 +534,49 @@ router.post('/:id/message', async (req, res) => {
   }
 });
 
+<<<<<<< HEAD
+// ─── UPDATE RESUME ────────────────────────────────────────
+// POST /api/sessions/:id/resume
+// Body: { resume_text }
+// Allows updating the resume after session creation.
+router.post('/:id/resume', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { resume_text } = req.body;
+
+    if (!resume_text || resume_text.trim().length === 0) {
+      return res.status(400).json({ error: 'Resume text is required.' });
+    }
+
+    const sessionResult = await pool.query(
+      `SELECT id, status FROM sessions WHERE id = $1 AND user_id = $2`,
+      [id, req.user.userId]
+    );
+
+    if (sessionResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Session not found.' });
+    }
+
+    if (sessionResult.rows[0].status === 'completed') {
+      return res.status(400).json({ error: 'Cannot update resume on a completed session.' });
+    }
+
+    await pool.query(
+      `UPDATE sessions SET resume_text = $1 WHERE id = $2`,
+      [resume_text.trim(), id]
+    );
+
+    console.log(`📄 Resume updated for session ${id} (${resume_text.length} chars)`);
+
+    res.json({ message: 'Resume updated successfully.', session_id: id });
+  } catch (error) {
+    console.error('Update resume error:', error.message);
+    res.status(500).json({ error: 'Failed to update resume.' });
+  }
+});
+
+=======
+>>>>>>> e8ac259e83537cb5da4f881a7ccdc095ce6275b1
 // ─── END SESSION ──────────────────────────────────────────
 // POST /api/sessions/:id/end
 // Forces a session to end and marks it as completed.

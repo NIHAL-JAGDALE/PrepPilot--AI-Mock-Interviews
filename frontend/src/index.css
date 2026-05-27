@@ -4,6 +4,8 @@
 
 /* ═══════════════════════════════════════════════════════════
 <<<<<<< HEAD
+=======
+<<<<<<< HEAD
    PrepPilot Design System
    ═══════════════════════════════════════════════════════════ */
 
@@ -45,6 +47,7 @@
 
 /* ─── Base Styles ──────────────────────────────────────── */
 =======
+>>>>>>> e8ac259e83537cb5da4f881a7ccdc095ce6275b1
    PrepPilot Design System — Matching HTML Design Files
    Fonts: Sora (headings) + DM Sans (body)
    Brand: #1DB954 green, white/light backgrounds, dark navy
@@ -102,7 +105,10 @@
 }
 
 /* ─── RESET ──────────────────────────────────────────────── */
+<<<<<<< HEAD
+=======
 >>>>>>> origin/v1.2
+>>>>>>> e8ac259e83537cb5da4f881a7ccdc095ce6275b1
 * {
   margin: 0;
   padding: 0;
@@ -114,6 +120,8 @@ html {
 }
 
 body {
+<<<<<<< HEAD
+=======
 <<<<<<< HEAD
   font-family: var(--font-sans);
   background: var(--color-surface-950);
@@ -158,6 +166,7 @@ body {
 .gradient-text {
   background: linear-gradient(135deg, #818cf8, #6366f1, #34d399);
 =======
+>>>>>>> e8ac259e83537cb5da4f881a7ccdc095ce6275b1
   font-family: 'DM Sans', 'system-ui', sans-serif;
   background: var(--white);
   color: var(--text);
@@ -189,12 +198,17 @@ h1, h2, h3, h4, h5, h6 {
 }
 .gradient-text-dark {
   background: linear-gradient(135deg, var(--dark), var(--dark2));
+<<<<<<< HEAD
+=======
 >>>>>>> origin/v1.2
+>>>>>>> e8ac259e83537cb5da4f881a7ccdc095ce6275b1
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
+<<<<<<< HEAD
+=======
 <<<<<<< HEAD
 /* ─── Glow Effects ─────────────────────────────────────── */
 .glow {
@@ -231,6 +245,7 @@ h1, h2, h3, h4, h5, h6 {
 .btn-primary:disabled {
   opacity: 0.5;
 =======
+>>>>>>> e8ac259e83537cb5da4f881a7ccdc095ce6275b1
 /* ─── CARDS & GLASS ────────────────────────────────────── */
 .card {
   background: var(--white);
@@ -298,12 +313,17 @@ h1, h2, h3, h4, h5, h6 {
 .btn-primary:active { transform: translateY(0); }
 .btn-primary:disabled {
   opacity: 0.6;
+<<<<<<< HEAD
+=======
 >>>>>>> origin/v1.2
+>>>>>>> e8ac259e83537cb5da4f881a7ccdc095ce6275b1
   cursor: not-allowed;
   transform: none;
 }
 
 .btn-secondary {
+<<<<<<< HEAD
+=======
 <<<<<<< HEAD
   background: rgba(99, 102, 241, 0.1);
   color: var(--color-primary-300);
@@ -356,6 +376,7 @@ h1, h2, h3, h4, h5, h6 {
   0%, 100% { box-shadow: 0 0 15px rgba(99, 102, 241, 0.2); }
   50% { box-shadow: 0 0 30px rgba(99, 102, 241, 0.4); }
 =======
+>>>>>>> e8ac259e83537cb5da4f881a7ccdc095ce6275b1
   background: transparent;
   color: var(--text);
   border: 2px solid var(--gray2);
@@ -579,12 +600,17 @@ h1, h2, h3, h4, h5, h6 {
 @keyframes pulse-glow {
   0%, 100% { box-shadow: 0 0 15px rgba(29,185,84,0.2); }
   50%       { box-shadow: 0 0 30px rgba(29,185,84,0.5); }
+<<<<<<< HEAD
+=======
 >>>>>>> origin/v1.2
+>>>>>>> e8ac259e83537cb5da4f881a7ccdc095ce6275b1
 }
 @keyframes shimmer {
   0% { background-position: -200% 0; }
   100% { background-position: 200% 0; }
 }
+<<<<<<< HEAD
+=======
 <<<<<<< HEAD
 
 .animate-fade-in {
@@ -626,6 +652,7 @@ h1, h2, h3, h4, h5, h6 {
   overflow: hidden;
   border: 1px solid rgba(99, 102, 241, 0.15);
 =======
+>>>>>>> e8ac259e83537cb5da4f881a7ccdc095ce6275b1
 @keyframes popIn {
   from { transform: scale(0); }
   to   { transform: scale(1); }
@@ -1062,5 +1089,8 @@ h1, h2, h3, h4, h5, h6 {
 @media (max-width: 768px) {
   .section-title { font-size: 28px; }
   .cta-banner { padding: 40px 24px; }
+<<<<<<< HEAD
+=======
 >>>>>>> origin/v1.2
+>>>>>>> e8ac259e83537cb5da4f881a7ccdc095ce6275b1
 }

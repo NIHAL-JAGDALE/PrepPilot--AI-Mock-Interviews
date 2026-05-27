@@ -1,4 +1,6 @@
 <<<<<<< HEAD
+=======
+<<<<<<< HEAD
 import { Link } from 'react-router-dom';
 
 const features = [
@@ -96,6 +98,7 @@ export default function Landing() {
                 <div className="text-3xl font-bold text-primary-400 mb-2">{stat}</div>
                 <div className="text-sm text-surface-400">{label}</div>
 =======
+>>>>>>> e8ac259e83537cb5da4f881a7ccdc095ce6275b1
 import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 
@@ -685,13 +688,18 @@ export default function Landing() {
                     <div style={{ fontSize: 12, color: 'var(--muted)' }}>{t.role}</div>
                   </div>
                 </div>
+<<<<<<< HEAD
+=======
 >>>>>>> origin/v1.2
+>>>>>>> e8ac259e83537cb5da4f881a7ccdc095ce6275b1
               </div>
             ))}
           </div>
         </div>
       </section>
 
+<<<<<<< HEAD
+=======
 <<<<<<< HEAD
       {/* ─── Features ─── */}
       <section id="features" className="py-24 px-6 relative z-20 bg-surface-950 border-t border-surface-800">
@@ -769,6 +777,7 @@ export default function Landing() {
           </div>
         </div>
 =======
+>>>>>>> e8ac259e83537cb5da4f881a7ccdc095ce6275b1
       {/* ─── STUDENT STRIP ────────────────────────────────── */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 16, padding: '40px 60px', background: 'var(--gray)', flexWrap: 'wrap' }}>
         <span style={{ fontSize: 14, color: 'var(--muted)', fontWeight: 500, marginRight: 8 }}>Join students from</span>
@@ -852,7 +861,10 @@ export default function Landing() {
             onMouseLeave={e => e.target.style.color = 'rgba(255,255,255,0.4)'}
           >Back to the top ↑</a>
         </div>
+<<<<<<< HEAD
+=======
 >>>>>>> origin/v1.2
+>>>>>>> e8ac259e83537cb5da4f881a7ccdc095ce6275b1
       </footer>
     </div>
   );

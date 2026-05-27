@@ -1,4 +1,6 @@
 <<<<<<< HEAD
+=======
+<<<<<<< HEAD
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { authAPI } from '../api/client';
@@ -135,6 +137,7 @@ export default function Register() {
     </div>
   );
 =======
+>>>>>>> e8ac259e83537cb5da4f881a7ccdc095ce6275b1
 // Register.jsx — redirects to Login with register tab pre-selected
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -147,5 +150,8 @@ export default function Register() {
     navigate('/login', { replace: true, state: { tab: 'register' } });
   }, [navigate]);
   return null;
+<<<<<<< HEAD
+=======
 >>>>>>> origin/v1.2
+>>>>>>> e8ac259e83537cb5da4f881a7ccdc095ce6275b1
 }

@@ -5,6 +5,9 @@ import { sessionAPI } from '../api/client';
 
 <<<<<<< HEAD
 =======
+<<<<<<< HEAD
+=======
+>>>>>>> e8ac259e83537cb5da4f881a7ccdc095ce6275b1
 const HIRING_META = {
   'Strong Hire': { color: '#1DB954', bg: 'rgba(29,185,84,0.1)' },
   'Hire': { color: '#0284c7', bg: 'rgba(2,132,199,0.1)' },
@@ -12,12 +15,17 @@ const HIRING_META = {
   'No Hire': { color: '#dc2626', bg: 'rgba(220,38,38,0.1)' },
 };
 
+<<<<<<< HEAD
+=======
 >>>>>>> origin/v1.2
+>>>>>>> e8ac259e83537cb5da4f881a7ccdc095ce6275b1
 export default function Dashboard() {
   const navigate = useNavigate();
   const [sessions, setSessions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+<<<<<<< HEAD
+=======
 <<<<<<< HEAD
   
   const user = JSON.parse(localStorage.getItem('preppilot_user') || '{}');
@@ -26,11 +34,15 @@ export default function Dashboard() {
     fetchSessions();
   }, []);
 =======
+>>>>>>> e8ac259e83537cb5da4f881a7ccdc095ce6275b1
 
   const user = JSON.parse(localStorage.getItem('preppilot_user') || '{}');
 
   useEffect(() => { fetchSessions(); }, []);
+<<<<<<< HEAD
+=======
 >>>>>>> origin/v1.2
+>>>>>>> e8ac259e83537cb5da4f881a7ccdc095ce6275b1
 
   const fetchSessions = async () => {
     try {
@@ -40,12 +52,16 @@ export default function Dashboard() {
       setError('Failed to load past sessions.');
       console.error(err);
 <<<<<<< HEAD
+    } finally { setLoading(false); }
+=======
+<<<<<<< HEAD
     } finally {
       setLoading(false);
     }
 =======
     } finally { setLoading(false); }
 >>>>>>> origin/v1.2
+>>>>>>> e8ac259e83537cb5da4f881a7ccdc095ce6275b1
   };
 
   const handleLogout = () => {
@@ -55,17 +71,22 @@ export default function Dashboard() {
   };
 
 <<<<<<< HEAD
+=======
+<<<<<<< HEAD
   // Prepare data for Recharts
   // sessions are returned descending (newest first).
   // For the chart, we want chronological order (oldest first).
 =======
 >>>>>>> origin/v1.2
+>>>>>>> e8ac259e83537cb5da4f881a7ccdc095ce6275b1
   const chartData = sessions
     .filter(s => s.status === 'completed' && s.overall_score != null)
     .reverse()
     .map((s, idx) => ({
       name: `Int ${idx + 1}`,
       score: Number(s.overall_score),
+<<<<<<< HEAD
+=======
 <<<<<<< HEAD
       date: new Date(s.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
     }));
@@ -78,6 +99,7 @@ export default function Dashboard() {
           <p className="text-surface-100 font-medium mb-1">{payload[0].payload.date}</p>
           <p className="text-primary-400 font-bold">Score: {payload[0].value}/100</p>
 =======
+>>>>>>> e8ac259e83537cb5da4f881a7ccdc095ce6275b1
       date: new Date(s.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
     }));
 
@@ -91,13 +113,18 @@ export default function Dashboard() {
         <div style={{ background: '#fff', borderRadius: 12, padding: '10px 16px', boxShadow: '0 8px 24px rgba(0,0,0,0.1)', border: '1px solid var(--gray2)' }}>
           <p style={{ fontSize: 12, color: 'var(--muted)', marginBottom: 4 }}>{payload[0].payload.date}</p>
           <p style={{ fontSize: 18, fontWeight: 800, color: 'var(--green)', fontFamily: 'Sora, sans-serif' }}>{payload[0].value}<span style={{ fontSize: 12, color: 'var(--muted)', fontWeight: 400 }}>/100</span></p>
+<<<<<<< HEAD
+=======
 >>>>>>> origin/v1.2
+>>>>>>> e8ac259e83537cb5da4f881a7ccdc095ce6275b1
         </div>
       );
     }
     return null;
   };
 
+<<<<<<< HEAD
+=======
 <<<<<<< HEAD
   return (
     <div className="min-h-screen pb-20">
@@ -128,6 +155,7 @@ export default function Dashboard() {
           <Link to="/interview/new" className="btn-primary py-3 px-6 shadow-lg shadow-primary-500/20 animate-pulse-glow flex items-center gap-2">
             <span>+</span> New Interview
 =======
+>>>>>>> e8ac259e83537cb5da4f881a7ccdc095ce6275b1
   const companyIcon = { startup: '🚀', mnc: '🏢', faang: '⭐' };
   const roleLabel = { frontend: 'Frontend', backend: 'Backend', fullstack: 'Full-Stack', dsa_focus: 'DSA Heavy' };
 
@@ -164,20 +192,29 @@ export default function Dashboard() {
           </div>
           <Link to="/interview/new" className="btn-primary animate-pulse-glow" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '14px 28px' }}>
             + New Interview
+<<<<<<< HEAD
+=======
 >>>>>>> origin/v1.2
+>>>>>>> e8ac259e83537cb5da4f881a7ccdc095ce6275b1
           </Link>
         </div>
 
         {error && (
 <<<<<<< HEAD
+          <div style={{ padding: '12px 16px', borderRadius: 12, background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', color: 'var(--error)', fontSize: 14, marginBottom: 32 }}>
+=======
+<<<<<<< HEAD
           <div className="p-4 rounded-lg bg-danger-500/10 border border-danger-500/20 text-danger-400 mb-8">
 =======
           <div style={{ padding: '12px 16px', borderRadius: 12, background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', color: 'var(--error)', fontSize: 14, marginBottom: 32 }}>
 >>>>>>> origin/v1.2
+>>>>>>> e8ac259e83537cb5da4f881a7ccdc095ce6275b1
             {error}
           </div>
         )}
 
+<<<<<<< HEAD
+=======
 <<<<<<< HEAD
         {loading ? (
           <div className="flex justify-center items-center py-20">
@@ -258,6 +295,7 @@ export default function Dashboard() {
                     </div>
                   ))}
 =======
+>>>>>>> e8ac259e83537cb5da4f881a7ccdc095ce6275b1
         {/* ─── SUMMARY STATS ────────────────────────────── */}
         {chartData.length > 0 && (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, marginBottom: 40 }}>
@@ -365,11 +403,16 @@ export default function Dashboard() {
                       </div>
                     );
                   })}
+<<<<<<< HEAD
+=======
 >>>>>>> origin/v1.2
+>>>>>>> e8ac259e83537cb5da4f881a7ccdc095ce6275b1
                 </div>
               )}
             </div>
 
+<<<<<<< HEAD
+=======
 <<<<<<< HEAD
             {/* ─── Right Column: Score Trend Chart ─── */}
             <div>
@@ -433,6 +476,7 @@ export default function Dashboard() {
                   </div>
                 )}
 =======
+>>>>>>> e8ac259e83537cb5da4f881a7ccdc095ce6275b1
             {/* ─── Trend Chart ─── */}
             <div style={{ background: '#fff', borderRadius: 20, padding: 28, border: '1px solid var(--gray2)', boxShadow: 'var(--shadow)', position: 'sticky', top: 100 }}>
               <h2 style={{ fontFamily: 'Sora, sans-serif', fontSize: 18, fontWeight: 700, color: 'var(--text)', marginBottom: 24 }}>Performance Trend</h2>
@@ -482,7 +526,10 @@ export default function Dashboard() {
                 <Link to="/interview/new" className="btn-primary" style={{ width: '100%', justifyContent: 'center', padding: '14px', borderRadius: 12, fontSize: 14 }}>
                   + Start New Interview
                 </Link>
+<<<<<<< HEAD
+=======
 >>>>>>> origin/v1.2
+>>>>>>> e8ac259e83537cb5da4f881a7ccdc095ce6275b1
               </div>
             </div>
 

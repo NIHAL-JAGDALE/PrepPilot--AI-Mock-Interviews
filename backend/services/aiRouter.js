@@ -42,6 +42,41 @@ const providerModules = {
 };
 
 /**
+<<<<<<< HEAD
+ * Check if a provider's API key is configured (not missing or a placeholder).
+ */
+function isProviderConfigured(provider) {
+  const keys = {
+    claude: process.env.ANTHROPIC_API_KEY,
+    openai: process.env.OPENAI_API_KEY,
+    groq: process.env.GROQ_API_KEY,
+  };
+  const key = keys[provider];
+  if (!key) return false;
+  // Detect placeholder keys like 'sk-ant-...' or 'your-key-here'
+  if (key.length < 20) return false;
+  if (key.includes('...') || key.includes('your-') || key.includes('placeholder')) return false;
+  return true;
+}
+
+/**
+ * Get the ordered list of providers to try, starting from the preferred one.
+ * Only includes providers that have API keys configured.
+ */
+function getProviderChain(preferred) {
+  const idx = PROVIDERS.indexOf(preferred);
+  // Build ordered list starting from preferred provider
+  const ordered = [];
+  for (let i = 0; i < PROVIDERS.length; i++) {
+    ordered.push(PROVIDERS[(idx + i) % PROVIDERS.length]);
+  }
+  // Filter to only configured providers
+  return ordered.filter(p => isProviderConfigured(p));
+}
+
+/**
+=======
+>>>>>>> e8ac259e83537cb5da4f881a7ccdc095ce6275b1
  * Determine if an error should trigger a provider fallback.
  * Returns true for rate limits, overload, and network errors.
  */
@@ -97,7 +132,11 @@ function getNextProvider(current) {
 export async function routeMessage(sessionId, userMessage) {
   // ── 1. Fetch session from DB ──
   const sessionResult = await pool.query(
+<<<<<<< HEAD
+    `SELECT id, user_id, company_type, role_type, current_provider, turn_count, resume_text
+=======
     `SELECT id, user_id, company_type, role_type, current_provider, turn_count
+>>>>>>> e8ac259e83537cb5da4f881a7ccdc095ce6275b1
      FROM sessions WHERE id = $1`,
     [sessionId]
   );
@@ -107,7 +146,12 @@ export async function routeMessage(sessionId, userMessage) {
   }
 
   const session = sessionResult.rows[0];
+<<<<<<< HEAD
+  const resumeProvided = !!(session.resume_text && session.resume_text.trim().length > 0);
+  const systemPrompt = generateSystemPrompt(session.company_type, session.role_type, resumeProvided);
+=======
   const systemPrompt = generateSystemPrompt(session.company_type, session.role_type);
+>>>>>>> e8ac259e83537cb5da4f881a7ccdc095ce6275b1
 
   // ── 2. Save user message to DB ──
   await pool.query(
@@ -122,6 +166,37 @@ export async function routeMessage(sessionId, userMessage) {
   // ── 4. Build optimized context ──
   const context = await getOptimizedContext(sessionId);
 
+<<<<<<< HEAD
+  // ── 4b. Inject resume into context so AI always has it ──
+  // After summarization (turn 5+), the original message containing the
+  // resume gets compressed to ~100 tokens, losing details the AI needs
+  // to personalize questions in Round 2 (Technical) and Round 3 (HR).
+  // Prepend a condensed resume reference to every AI call.
+  if (resumeProvided && session.turn_count >= 1) {
+    const resumeContext = {
+      role: 'user',
+      content: `[CANDIDATE RESUME — Use this to personalize questions]\n${session.resume_text}\n[END RESUME]`,
+    };
+    context.unshift(resumeContext);
+  }
+
+  // ── 5. Try providers with fallback ──
+  const providerChain = getProviderChain(session.current_provider);
+  
+  if (providerChain.length === 0) {
+    console.error('🚫 No AI providers are configured. Check your .env file.');
+    throw Object.assign(
+      new Error('No AI providers are configured. Please add at least one valid API key to your .env file.'),
+      { status: 503 }
+    );
+  }
+
+  let lastError = null;
+
+  for (const currentProvider of providerChain) {
+    try {
+      console.log(`\n🔄 Attempting provider: ${currentProvider} (${providerChain.indexOf(currentProvider) + 1}/${providerChain.length} configured)`);
+=======
   // ── 5. Try providers with fallback ──
   let currentProvider = session.current_provider;
   let attempts = 0;
@@ -130,6 +205,7 @@ export async function routeMessage(sessionId, userMessage) {
   while (attempts < PROVIDERS.length) {
     try {
       console.log(`\n🔄 Attempting provider: ${currentProvider} (attempt ${attempts + 1}/${PROVIDERS.length})`);
+>>>>>>> e8ac259e83537cb5da4f881a7ccdc095ce6275b1
 
       // Format messages for this provider
       const formattedMessages = formatForProvider(context, currentProvider);
@@ -182,6 +258,13 @@ export async function routeMessage(sessionId, userMessage) {
     } catch (error) {
       lastError = error;
       console.error(`❌ Provider ${currentProvider} failed:`, error.message);
+<<<<<<< HEAD
+      
+      // Log and continue to next provider
+      const nextIdx = providerChain.indexOf(currentProvider) + 1;
+      if (nextIdx < providerChain.length) {
+        console.log(`🔀 Switching from ${currentProvider} → ${providerChain[nextIdx]}`);
+=======
 
       if (shouldFallback(error)) {
         const nextProvider = getNextProvider(currentProvider);
@@ -199,12 +282,17 @@ export async function routeMessage(sessionId, userMessage) {
         // Non-fallback error (e.g., invalid request) — don't retry
         console.error(`💥 Non-recoverable error from ${currentProvider}:`, error.message);
         throw error;
+>>>>>>> e8ac259e83537cb5da4f881a7ccdc095ce6275b1
       }
     }
   }
 
   // ── All providers failed ──
+<<<<<<< HEAD
+  console.error('🚫 All configured providers failed. Last error:', lastError?.message);
+=======
   console.error('🚫 All providers failed. Last error:', lastError?.message);
+>>>>>>> e8ac259e83537cb5da4f881a7ccdc095ce6275b1
   throw Object.assign(
     new Error('All AI providers are currently unavailable. Please try again later.'),
     { status: 503 }

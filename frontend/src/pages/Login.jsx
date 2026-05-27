@@ -1,4 +1,6 @@
 <<<<<<< HEAD
+=======
+<<<<<<< HEAD
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { authAPI } from '../api/client';
@@ -112,6 +114,7 @@ export default function Login() {
         </div>
       </div>
 =======
+>>>>>>> e8ac259e83537cb5da4f881a7ccdc095ce6275b1
 import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { authAPI } from '../api/client';
@@ -475,7 +478,10 @@ export default function Login() {
           <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 15 }}>Redirecting to your dashboard...</p>
         </div>
       )}
+<<<<<<< HEAD
+=======
 >>>>>>> origin/v1.2
+>>>>>>> e8ac259e83537cb5da4f881a7ccdc095ce6275b1
     </div>
   );
 }

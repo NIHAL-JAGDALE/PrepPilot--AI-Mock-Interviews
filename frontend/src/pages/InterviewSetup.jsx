@@ -4,6 +4,9 @@ import { sessionAPI } from '../api/client';
 
 <<<<<<< HEAD
 =======
+<<<<<<< HEAD
+=======
+>>>>>>> e8ac259e83537cb5da4f881a7ccdc095ce6275b1
 const COMPANY_OPTIONS = [
   {
     value: 'startup',
@@ -35,11 +38,59 @@ const ROLE_OPTIONS = [
   { value: 'dsa_focus', icon: '🧩', title: 'DSA Heavy', desc: 'Algorithmic problem solving, competitive programming style' },
 ];
 
+<<<<<<< HEAD
+=======
 >>>>>>> origin/v1.2
+>>>>>>> e8ac259e83537cb5da4f881a7ccdc095ce6275b1
 export default function InterviewSetup() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+<<<<<<< HEAD
+  const [form, setForm] = useState({ company_type: 'startup', role_type: 'frontend', resume_text: '' });
+  const [isUploading, setIsUploading] = useState(false);
+  const [fileName, setFileName] = useState('');
+  const [dragActive, setDragActive] = useState(false);
+
+  const handleFileUpload = async (file) => {
+    if (!file) return;
+    setIsUploading(true);
+    setError('');
+    
+    const formData = new FormData();
+    formData.append('resume', file);
+    
+    try {
+      const { data } = await sessionAPI.extractResume(formData);
+      setForm({ ...form, resume_text: data.text });
+      setFileName(file.name);
+    } catch (err) {
+      setError(err.response?.data?.error || 'Failed to upload and parse resume.');
+      setForm({ ...form, resume_text: '' });
+      setFileName('');
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleDrag = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === "dragenter" || e.type === "dragover") {
+      setDragActive(true);
+    } else if (e.type === "dragleave") {
+      setDragActive(false);
+    }
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      handleFileUpload(e.dataTransfer.files[0]);
+    }
+=======
 <<<<<<< HEAD
   
   const [form, setForm] = useState({
@@ -49,10 +100,14 @@ export default function InterviewSetup() {
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
+>>>>>>> e8ac259e83537cb5da4f881a7ccdc095ce6275b1
   };
 
   const handleStart = async (e) => {
     e.preventDefault();
+<<<<<<< HEAD
+    setLoading(true); setError('');
+=======
     setLoading(true);
     setError('');
 
@@ -63,6 +118,7 @@ export default function InterviewSetup() {
     e.preventDefault();
     setLoading(true); setError('');
 >>>>>>> origin/v1.2
+>>>>>>> e8ac259e83537cb5da4f881a7ccdc095ce6275b1
     try {
       const { data } = await sessionAPI.start(form);
       navigate(`/interview/${data.session_id}`);
@@ -73,6 +129,8 @@ export default function InterviewSetup() {
   };
 
   return (
+<<<<<<< HEAD
+=======
 <<<<<<< HEAD
     <div className="min-h-screen flex items-center justify-center px-4 relative overflow-hidden">
       {/* Background effects */}
@@ -131,6 +189,7 @@ export default function InterviewSetup() {
             {error && (
               <div className="p-3 rounded-lg bg-danger-500/10 border border-danger-500/20 text-danger-400 text-sm">
 =======
+>>>>>>> e8ac259e83537cb5da4f881a7ccdc095ce6275b1
     <div style={{ minHeight: '100vh', background: 'var(--gray)', display: 'flex', flexDirection: 'column' }}>
       {/* Header */}
       <header style={{
@@ -260,23 +319,95 @@ export default function InterviewSetup() {
               </div>
             </div>
 
+<<<<<<< HEAD
+            {/* Resume Input - File Upload */}
+            <div style={{ marginBottom: 32 }}>
+              <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--text)', marginBottom: 16, fontFamily: 'Sora, sans-serif', display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span>3</span>
+                <span style={{ width: 24, height: 2, background: 'var(--green)', display: 'inline-block', borderRadius: 2 }} />
+                Your Resume (Required)
+              </div>
+              
+              <div 
+                onDragEnter={handleDrag}
+                onDragOver={handleDrag}
+                onDragLeave={handleDrag}
+                onDrop={handleDrop}
+                style={{
+                  width: '100%',
+                  border: `2px dashed ${dragActive ? 'var(--green)' : 'var(--gray2)'}`,
+                  borderRadius: 16,
+                  padding: '40px 24px',
+                  textAlign: 'center',
+                  background: dragActive ? 'rgba(29,185,84,0.05)' : '#fff',
+                  transition: 'all 0.2s ease',
+                  cursor: 'pointer',
+                  position: 'relative'
+                }}
+              >
+                <input 
+                  type="file" 
+                  accept=".pdf,.doc,.docx,.txt" 
+                  onChange={(e) => e.target.files && handleFileUpload(e.target.files[0])}
+                  style={{ opacity: 0, position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', cursor: 'pointer' }}
+                />
+                
+                {isUploading ? (
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
+                    <div style={{ width: 30, height: 30, border: '3px solid rgba(29,185,84,0.2)', borderTopColor: 'var(--green)', borderRadius: '50%', animation: 'spin .7s linear infinite' }} />
+                    <p style={{ margin: 0, color: 'var(--text)', fontWeight: 600 }}>Extracting Resume Data...</p>
+                  </div>
+                ) : fileName ? (
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
+                    <div style={{ fontSize: 32 }}>📄</div>
+                    <p style={{ margin: 0, color: 'var(--text)', fontWeight: 700 }}>{fileName}</p>
+                    <p style={{ margin: 0, color: 'var(--green)', fontSize: 13, fontWeight: 600 }}>✓ Uploaded successfully. Click or drag to replace.</p>
+                  </div>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
+                    <div style={{ fontSize: 40 }}>📄</div>
+                    <h3 style={{ margin: 0, color: 'var(--text)', fontSize: 18, fontFamily: 'Sora, sans-serif' }}>Drag & Drop your Resume</h3>
+                    <p style={{ margin: 0, color: 'var(--muted)', fontSize: 14 }}>or click to browse from your computer</p>
+                    <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
+                      <span style={{ fontSize: 11, background: 'var(--gray)', padding: '2px 8px', borderRadius: 4, fontWeight: 600, color: 'var(--muted)' }}>PDF</span>
+                      <span style={{ fontSize: 11, background: 'var(--gray)', padding: '2px 8px', borderRadius: 4, fontWeight: 600, color: 'var(--muted)' }}>DOC</span>
+                      <span style={{ fontSize: 11, background: 'var(--gray)', padding: '2px 8px', borderRadius: 4, fontWeight: 600, color: 'var(--muted)' }}>DOCX</span>
+                      <span style={{ fontSize: 11, background: 'var(--gray)', padding: '2px 8px', borderRadius: 4, fontWeight: 600, color: 'var(--muted)' }}>TXT</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+=======
+>>>>>>> e8ac259e83537cb5da4f881a7ccdc095ce6275b1
             {/* Info box */}
             <div style={{ background: 'rgba(29,185,84,0.06)', border: '1px solid rgba(29,185,84,0.2)', borderRadius: 14, padding: '16px 20px', marginBottom: 28, display: 'flex', gap: 14, alignItems: 'flex-start' }}>
               <span style={{ fontSize: 20, flexShrink: 0 }}>ℹ️</span>
               <div style={{ fontSize: 13, color: 'var(--text)', lineHeight: 1.6 }}>
+<<<<<<< HEAD
+                <strong>Your interview will include:</strong> 3 rounds with variable question counts (minimum 16 total), with real-time adaptive difficulty and live DSA coding.
+=======
                 <strong>Your interview will include:</strong> 5 rounds (10 questions total), with live DSA rounds (turns 2–4) that feature a Monaco editor + Judge0 compiler. Estimated time: 45 minutes.
+>>>>>>> e8ac259e83537cb5da4f881a7ccdc095ce6275b1
               </div>
             </div>
 
             {error && (
               <div style={{ padding: '12px 16px', borderRadius: 12, background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', color: 'var(--error)', fontSize: 14, marginBottom: 24 }}>
+<<<<<<< HEAD
+=======
 >>>>>>> origin/v1.2
+>>>>>>> e8ac259e83537cb5da4f881a7ccdc095ce6275b1
                 {error}
               </div>
             )}
 
             <button
               type="submit"
+<<<<<<< HEAD
+              disabled={loading || isUploading || !form.resume_text}
+=======
               disabled={loading}
 <<<<<<< HEAD
               className="btn-primary w-full py-3.5 text-lg shadow-lg shadow-primary-500/20 mt-4"
@@ -300,6 +431,7 @@ export default function InterviewSetup() {
         </div>
       </div>
 =======
+>>>>>>> e8ac259e83537cb5da4f881a7ccdc095ce6275b1
               className="btn-primary"
               style={{ width: '100%', justifyContent: 'center', padding: '18px', fontSize: 16, fontWeight: 700, borderRadius: 14, fontFamily: 'Sora, sans-serif' }}
             >
@@ -313,7 +445,10 @@ export default function InterviewSetup() {
           </form>
         </div>
       </main>
+<<<<<<< HEAD
+=======
 >>>>>>> origin/v1.2
+>>>>>>> e8ac259e83537cb5da4f881a7ccdc095ce6275b1
     </div>
   );
 }
