@@ -2,6 +2,7 @@ import { Routes, Route } from 'react-router-dom';
 import ProtectedRoute from './components/ProtectedRoute';
 
 // ─── Step 20: Real Page Imports ───────────────────────────
+// step20
 import Landing from './pages/Landing';
 import Login from './pages/Login';
 import Register from './pages/Register';
