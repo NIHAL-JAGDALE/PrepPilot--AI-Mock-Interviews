@@ -2,11 +2,6 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { sessionAPI } from '../api/client';
 
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-=======
->>>>>>> e8ac259e83537cb5da4f881a7ccdc095ce6275b1
 const COMPANY_OPTIONS = [
   {
     value: 'startup',
@@ -38,15 +33,10 @@ const ROLE_OPTIONS = [
   { value: 'dsa_focus', icon: '🧩', title: 'DSA Heavy', desc: 'Algorithmic problem solving, competitive programming style' },
 ];
 
-<<<<<<< HEAD
-=======
->>>>>>> origin/v1.2
->>>>>>> e8ac259e83537cb5da4f881a7ccdc095ce6275b1
 export default function InterviewSetup() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-<<<<<<< HEAD
   const [form, setForm] = useState({ company_type: 'startup', role_type: 'frontend', resume_text: '' });
   const [isUploading, setIsUploading] = useState(false);
   const [fileName, setFileName] = useState('');
@@ -90,35 +80,11 @@ export default function InterviewSetup() {
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       handleFileUpload(e.dataTransfer.files[0]);
     }
-=======
-<<<<<<< HEAD
-  
-  const [form, setForm] = useState({
-    company_type: 'startup',
-    role_type: 'frontend',
-  });
-
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
->>>>>>> e8ac259e83537cb5da4f881a7ccdc095ce6275b1
   };
 
   const handleStart = async (e) => {
     e.preventDefault();
-<<<<<<< HEAD
     setLoading(true); setError('');
-=======
-    setLoading(true);
-    setError('');
-
-=======
-  const [form, setForm] = useState({ company_type: 'startup', role_type: 'frontend' });
-
-  const handleStart = async (e) => {
-    e.preventDefault();
-    setLoading(true); setError('');
->>>>>>> origin/v1.2
->>>>>>> e8ac259e83537cb5da4f881a7ccdc095ce6275b1
     try {
       const { data } = await sessionAPI.start(form);
       navigate(`/interview/${data.session_id}`);
@@ -129,67 +95,6 @@ export default function InterviewSetup() {
   };
 
   return (
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-    <div className="min-h-screen flex items-center justify-center px-4 relative overflow-hidden">
-      {/* Background effects */}
-      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary-600/10 rounded-full blur-3xl" />
-      <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-accent-500/10 rounded-full blur-3xl" />
-
-      <div className="w-full max-w-lg relative z-10 animate-fade-in">
-        <div className="mb-8 text-center">
-          <Link to="/dashboard" className="inline-block text-surface-400 hover:text-surface-200 transition-colors mb-6 text-sm font-medium">
-            ← Back to Dashboard
-          </Link>
-          <h1 className="text-3xl font-bold text-surface-100 mb-2">Configure Interview</h1>
-          <p className="text-surface-300 text-sm">
-            Tailor the AI interviewer to your target role and company type.
-          </p>
-        </div>
-
-        <div className="glass p-8 glow">
-          <form onSubmit={handleStart} className="space-y-6">
-            
-            <div>
-              <label htmlFor="company_type" className="block text-sm font-medium text-surface-200 mb-2">
-                Target Company Type
-              </label>
-              <select
-                id="company_type"
-                name="company_type"
-                value={form.company_type}
-                onChange={handleChange}
-                className="input-field cursor-pointer appearance-none bg-surface-900"
-              >
-                <option value="startup">Startup (Fast-paced, practical questions)</option>
-                <option value="mnc">MNC (Standardized, domain knowledge)</option>
-                <option value="faang">FAANG (Deep DSA, system design)</option>
-              </select>
-            </div>
-
-            <div>
-              <label htmlFor="role_type" className="block text-sm font-medium text-surface-200 mb-2">
-                Role Focus
-              </label>
-              <select
-                id="role_type"
-                name="role_type"
-                value={form.role_type}
-                onChange={handleChange}
-                className="input-field cursor-pointer appearance-none bg-surface-900"
-              >
-                <option value="frontend">Frontend Developer (React, DOM, JS)</option>
-                <option value="backend">Backend Developer (APIs, DBs, Node.js)</option>
-                <option value="fullstack">Full-Stack Developer (End-to-End)</option>
-                <option value="dsa_focus">DSA Heavy (Algorithmic problem solving)</option>
-              </select>
-            </div>
-
-            {error && (
-              <div className="p-3 rounded-lg bg-danger-500/10 border border-danger-500/20 text-danger-400 text-sm">
-=======
->>>>>>> e8ac259e83537cb5da4f881a7ccdc095ce6275b1
     <div style={{ minHeight: '100vh', background: 'var(--gray)', display: 'flex', flexDirection: 'column' }}>
       {/* Header */}
       <header style={{
@@ -319,7 +224,6 @@ export default function InterviewSetup() {
               </div>
             </div>
 
-<<<<<<< HEAD
             {/* Resume Input - File Upload */}
             <div style={{ marginBottom: 32 }}>
               <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--text)', marginBottom: 16, fontFamily: 'Sora, sans-serif', display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -379,59 +283,23 @@ export default function InterviewSetup() {
               </div>
             </div>
 
-=======
->>>>>>> e8ac259e83537cb5da4f881a7ccdc095ce6275b1
             {/* Info box */}
             <div style={{ background: 'rgba(29,185,84,0.06)', border: '1px solid rgba(29,185,84,0.2)', borderRadius: 14, padding: '16px 20px', marginBottom: 28, display: 'flex', gap: 14, alignItems: 'flex-start' }}>
               <span style={{ fontSize: 20, flexShrink: 0 }}>ℹ️</span>
               <div style={{ fontSize: 13, color: 'var(--text)', lineHeight: 1.6 }}>
-<<<<<<< HEAD
                 <strong>Your interview will include:</strong> 3 rounds with variable question counts (minimum 16 total), with real-time adaptive difficulty and live DSA coding.
-=======
-                <strong>Your interview will include:</strong> 5 rounds (10 questions total), with live DSA rounds (turns 2–4) that feature a Monaco editor + Judge0 compiler. Estimated time: 45 minutes.
->>>>>>> e8ac259e83537cb5da4f881a7ccdc095ce6275b1
               </div>
             </div>
 
             {error && (
               <div style={{ padding: '12px 16px', borderRadius: 12, background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', color: 'var(--error)', fontSize: 14, marginBottom: 24 }}>
-<<<<<<< HEAD
-=======
->>>>>>> origin/v1.2
->>>>>>> e8ac259e83537cb5da4f881a7ccdc095ce6275b1
                 {error}
               </div>
             )}
 
             <button
               type="submit"
-<<<<<<< HEAD
               disabled={loading || isUploading || !form.resume_text}
-=======
-              disabled={loading}
-<<<<<<< HEAD
-              className="btn-primary w-full py-3.5 text-lg shadow-lg shadow-primary-500/20 mt-4"
-            >
-              {loading ? (
-                <span className="flex items-center justify-center gap-2">
-                  <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  Preparing AI...
-                </span>
-              ) : (
-                'Start Interview 🚀'
-              )}
-            </button>
-          </form>
-
-          <div className="mt-8 pt-6 border-t border-surface-800 text-center">
-            <p className="text-xs text-surface-400">
-              The interview consists of 5 rounds (10 questions). Ensure you have ~45 minutes of uninterrupted time.
-            </p>
-          </div>
-        </div>
-      </div>
-=======
->>>>>>> e8ac259e83537cb5da4f881a7ccdc095ce6275b1
               className="btn-primary"
               style={{ width: '100%', justifyContent: 'center', padding: '18px', fontSize: 16, fontWeight: 700, borderRadius: 14, fontFamily: 'Sora, sans-serif' }}
             >
@@ -445,10 +313,6 @@ export default function InterviewSetup() {
           </form>
         </div>
       </main>
-<<<<<<< HEAD
-=======
->>>>>>> origin/v1.2
->>>>>>> e8ac259e83537cb5da4f881a7ccdc095ce6275b1
     </div>
   );
 }

@@ -27,13 +27,9 @@ CREATE TABLE IF NOT EXISTS sessions (
   status            TEXT DEFAULT 'active',
   current_provider  TEXT DEFAULT 'claude',
   turn_count        INT DEFAULT 0,
-<<<<<<< HEAD
   current_round     INT DEFAULT 0,
   total_score       INT,
   resume_text       TEXT,
-=======
-  total_score       INT,
->>>>>>> e8ac259e83537cb5da4f881a7ccdc095ce6275b1
   created_at        TIMESTAMP DEFAULT NOW()
 );
 

@@ -25,10 +25,7 @@ import { formatForProvider } from './messageFormatter.js';
 const SUMMARIZATION_PROMPT = `You are a concise summarizer. Summarize the following interview conversation in EXACTLY 100 tokens or fewer. 
 
 Include:
-<<<<<<< HEAD
 - Candidate name, key skills, and projects from their resume
-=======
->>>>>>> e8ac259e83537cb5da4f881a7ccdc095ce6275b1
 - Questions that were asked (by number)
 - Scores given for each answer
 - Key weak areas identified
