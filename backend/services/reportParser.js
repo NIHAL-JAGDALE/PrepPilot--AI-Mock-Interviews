@@ -48,7 +48,6 @@ export function parseReport(aiResponse) {
     report.percentile = percentileMatch ? parseInt(percentileMatch[1]) : null;
 
     // ── Round Breakdown ──
-<<<<<<< HEAD
     // V2 Format Check (3 Rounds)
     const r1Match = aiResponse.match(/Round\s*1.*?:\s*(\d+(?:\.\d+)?)\s*\/\s*10/i);
     const r2Match = aiResponse.match(/Round\s*2.*?:\s*(\d+(?:\.\d+)?)\s*\/\s*10/i);
@@ -77,33 +76,11 @@ export function parseReport(aiResponse) {
       const hrMatch = aiResponse.match(/HR\s*(?:&|and)?\s*Behavioral?\s*\(Q9[-–]Q10\):\s*(\d+(?:\.\d+)?)\s*\/\s*10/i);
       report.hr_score = hrMatch ? Math.round(parseFloat(hrMatch[1])) : null;
     }
-=======
-    // Introduction (Q1)
-    const introMatch = aiResponse.match(/Introduction\s*\(Q1\):\s*(\d+)\s*\/\s*10/i);
-    report.intro_score = introMatch ? parseInt(introMatch[1]) : null;
-
-    // DSA Round (Q2-Q4)
-    const dsaMatch = aiResponse.match(/DSA\s*(?:Round)?\s*\(Q2[-–]Q4\):\s*(\d+(?:\.\d+)?)\s*\/\s*10/i);
-    report.dsa_score = dsaMatch ? Math.round(parseFloat(dsaMatch[1])) : null;
-
-    // CS Fundamentals (Q5-Q6)
-    const csMatch = aiResponse.match(/CS\s*Fundamentals?\s*\(Q5[-–]Q6\):\s*(\d+(?:\.\d+)?)\s*\/\s*10/i);
-    report.cs_score = csMatch ? Math.round(parseFloat(csMatch[1])) : null;
-
-    // Project Deep Dive (Q7-Q8)
-    const projectMatch = aiResponse.match(/Project\s*(?:Deep\s*Dive)?\s*\(Q7[-–]Q8\):\s*(\d+(?:\.\d+)?)\s*\/\s*10/i);
-    report.project_score = projectMatch ? Math.round(parseFloat(projectMatch[1])) : null;
-
-    // HR & Behavioral (Q9-Q10)
-    const hrMatch = aiResponse.match(/HR\s*(?:&|and)?\s*Behavioral?\s*\(Q9[-–]Q10\):\s*(\d+(?:\.\d+)?)\s*\/\s*10/i);
-    report.hr_score = hrMatch ? Math.round(parseFloat(hrMatch[1])) : null;
->>>>>>> e8ac259e83537cb5da4f881a7ccdc095ce6275b1
 
     // ── Strengths ──
     const strengthsMatch = aiResponse.match(
       /TOP\s*3\s*STRENGTHS?:\s*([\s\S]*?)(?=TOP\s*3\s*(?:AREAS?\s*(?:FOR\s*)?IMPROVEMENT|IMPROVEMENT)|HIRING\s*RECOMMENDATION|$)/i
     );
-<<<<<<< HEAD
     if (strengthsMatch) {
       const rawStrengths = strengthsMatch[1].trim();
       // Parse numbered list items (1. xxx, 2. xxx) or bullet points (- xxx)
@@ -115,17 +92,11 @@ export function parseReport(aiResponse) {
     } else {
       report.strengths = null;
     }
-=======
-    report.strengths = strengthsMatch
-      ? strengthsMatch[1].trim().replace(/^\n+|\n+$/g, '')
-      : null;
->>>>>>> e8ac259e83537cb5da4f881a7ccdc095ce6275b1
 
     // ── Improvements ──
     const improvementsMatch = aiResponse.match(
       /TOP\s*3\s*(?:AREAS?\s*(?:FOR\s*)?)?IMPROVEMENT[S]?:\s*([\s\S]*?)(?=HIRING\s*RECOMMENDATION|$)/i
     );
-<<<<<<< HEAD
     if (improvementsMatch) {
       const rawImprovements = improvementsMatch[1].trim();
       const items = rawImprovements
@@ -136,11 +107,6 @@ export function parseReport(aiResponse) {
     } else {
       report.improvements = null;
     }
-=======
-    report.improvements = improvementsMatch
-      ? improvementsMatch[1].trim().replace(/^\n+|\n+$/g, '')
-      : null;
->>>>>>> e8ac259e83537cb5da4f881a7ccdc095ce6275b1
 
     // ── Hiring Recommendation ──
     const hiringMatch = aiResponse.match(
@@ -154,7 +120,6 @@ export function parseReport(aiResponse) {
     const studyPlanMatch = aiResponse.match(
       /30[-–]DAY\s*STUDY\s*PLAN:\s*([\s\S]*?)(?=═|$)/i
     );
-<<<<<<< HEAD
     if (studyPlanMatch) {
       const rawPlan = studyPlanMatch[1].trim();
       // Parse "Week N: description" lines
@@ -181,11 +146,6 @@ export function parseReport(aiResponse) {
     } else {
       report.study_plan = null;
     }
-=======
-    report.study_plan = studyPlanMatch
-      ? studyPlanMatch[1].trim().replace(/^\n+|\n+$/g, '')
-      : null;
->>>>>>> e8ac259e83537cb5da4f881a7ccdc095ce6275b1
 
     // Validate we got at least some data
     const hasData = report.overall_score !== null || report.hiring_recommendation !== null;
