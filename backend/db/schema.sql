@@ -51,7 +51,7 @@ CREATE TABLE IF NOT EXISTS messages (
 
 -- ─── 4. DSA PROBLEMS ─────────────────────────────────────
 -- Tracks LeetCode problems fetched for DSA rounds (turns 2, 3, 4).
--- user_code and judge0_result store the student's submission + outcome.
+-- user_code and jdoodle_result store the student's submission + outcome.
 CREATE TABLE IF NOT EXISTS dsa_problems (
   id             SERIAL PRIMARY KEY,
   session_id     UUID REFERENCES sessions(id) ON DELETE CASCADE,
@@ -61,7 +61,7 @@ CREATE TABLE IF NOT EXISTS dsa_problems (
   difficulty     TEXT,
   user_code      TEXT,
   language       TEXT,
-  judge0_result  TEXT,
+  jdoodle_result TEXT,
   passed         BOOLEAN,
   runtime_ms     INT,
   created_at     TIMESTAMP DEFAULT NOW()

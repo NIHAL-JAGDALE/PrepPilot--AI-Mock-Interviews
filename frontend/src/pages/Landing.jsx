@@ -9,7 +9,7 @@ const faqs = [
   },
   {
     q: 'Does it support DSA coding rounds?',
-    a: 'Yes — turns 2, 3, and 4 are DSA rounds with real LeetCode problems. You write and run code directly in a Monaco editor, and Judge0 executes it and returns test results live during the interview.',
+    a: 'Yes — turns 2, 3, and 4 are DSA rounds with real LeetCode problems. You write and run code directly in a Monaco editor, and JDoodle executes it and returns test results live during the interview.',
   },
   {
     q: 'What happens if the AI goes down mid-interview?',
@@ -448,7 +448,7 @@ export default function Landing() {
               </div>
               <div className="feat-icon" style={{ background: 'rgba(96,165,250,0.15)' }}>⚡</div>
               <h4 style={{ fontFamily: 'Sora, sans-serif', fontSize: 17, fontWeight: 700, color: '#fff', marginBottom: 8 }}>Live DSA Compiler</h4>
-              <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.5)', lineHeight: 1.7 }}>Real LeetCode problems with Monaco editor and Judge0 execution. Write, run, and get evaluated — all inside the interview.</p>
+              <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.5)', lineHeight: 1.7 }}>Real LeetCode problems with Monaco editor and JDoodle execution. Write, run, and get evaluated — all inside the interview.</p>
             </div>
 
             {/* Card 3 */}
