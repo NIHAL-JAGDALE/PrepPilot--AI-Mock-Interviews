@@ -237,7 +237,7 @@ router.get('/:id', async (req, res) => {
     // ── Fetch DSA problems for this session ──
     const dsaResult = await pool.query(
       `SELECT id, turn_number, leetcode_slug, title, difficulty,
-              user_code, language, judge0_result, passed, runtime_ms, created_at
+              user_code, language, jdoodle_result, passed, runtime_ms, created_at
        FROM dsa_problems
        WHERE session_id = $1
        ORDER BY turn_number ASC`,

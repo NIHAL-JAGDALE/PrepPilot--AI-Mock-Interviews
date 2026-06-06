@@ -410,7 +410,7 @@ export default function Interview() {
   }
 
   const isCompleted = session?.status === 'completed';
-  const isDSATurn = session?.current_round === 1 && activeDsaProblem && !isCompleted;
+  const isDSATurn = !!activeDsaProblem && !isCompleted;
 
   return (
     <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', overflow: 'hidden', background: '#F5F7FA', fontFamily: 'DM Sans, sans-serif' }}>

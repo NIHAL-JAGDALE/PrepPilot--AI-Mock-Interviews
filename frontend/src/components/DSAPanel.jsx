@@ -3,11 +3,12 @@ import Editor from '@monaco-editor/react';
 import { compilerAPI, problemAPI } from '../api/client';
 
 // ─── LANGUAGE CONFIG ──────────────────────────────────────
+// Uses JDoodle language keys (strings) for execution
 const LANGUAGES = [
-  { id: 71, name: 'Python 3', monaco: 'python', stub: 'def solution():\n    # Write your solution here\n    pass\n\n# Test your solution\nprint(solution())\n' },
-  { id: 63, name: 'JavaScript', monaco: 'javascript', stub: '/**\n * @param {number[]} nums\n * @return {number}\n */\nfunction solution(nums) {\n    // Write your solution here\n}\n\nconsole.log(solution([]));\n' },
-  { id: 54, name: 'C++', monaco: 'cpp', stub: '#include <bits/stdc++.h>\nusing namespace std;\n\nint solution() {\n    // Write your solution here\n    return 0;\n}\n\nint main() {\n    cout << solution() << endl;\n    return 0;\n}\n' },
-  { id: 62, name: 'Java', monaco: 'java', stub: 'public class Solution {\n    public static int solution() {\n        // Write your solution here\n        return 0;\n    }\n\n    public static void main(String[] args) {\n        System.out.println(solution());\n    }\n}\n' },
+  { key: 'python',     name: 'Python 3',   monaco: 'python',     stub: 'def solution():\n    # Write your solution here\n    pass\n\n# Test your solution\nprint(solution())\n' },
+  { key: 'javascript', name: 'JavaScript', monaco: 'javascript', stub: '/**\n * @param {number[]} nums\n * @return {number}\n */\nfunction solution(nums) {\n    // Write your solution here\n}\n\nconsole.log(solution([]));\n' },
+  { key: 'cpp',        name: 'C++',        monaco: 'cpp',        stub: '#include <bits/stdc++.h>\nusing namespace std;\n\nint solution() {\n    // Write your solution here\n    return 0;\n}\n\nint main() {\n    cout << solution() << endl;\n    return 0;\n}\n' },
+  { key: 'java',       name: 'Java',       monaco: 'java',       stub: 'public class Solution {\n    public static int solution() {\n        // Write your solution here\n        return 0;\n    }\n\n    public static void main(String[] args) {\n        System.out.println(solution());\n    }\n}\n' },
 ];
 
 const LIGHT_COLORS = {
@@ -207,18 +208,18 @@ export default function DSAPanel({ problem: initialProblem, sessionId, onSubmitC
 
   const colors = isDarkMode ? DARK_COLORS : LIGHT_COLORS;
 
-  // Map our language IDs to LeetCode langSlug values
+  // Map our language keys to LeetCode langSlug values
   const LANG_SLUG_MAP = {
-    71: 'python3',
-    63: 'javascript',
-    54: 'cpp',
-    62: 'java',
+    python:     'python3',
+    javascript: 'javascript',
+    cpp:        'cpp',
+    java:       'java',
   };
 
   // Helper: get code snippet for a language from the problem's codeSnippets
   const getSnippetForLang = useCallback((lang, prob) => {
     if (!prob?.codeSnippets || !Array.isArray(prob.codeSnippets)) return lang.stub;
-    const slug = LANG_SLUG_MAP[lang.id];
+    const slug = LANG_SLUG_MAP[lang.key];
     const match = prob.codeSnippets.find(s => s.langSlug === slug);
     return match ? match.code : lang.stub;
   }, []);
@@ -230,6 +231,8 @@ export default function DSAPanel({ problem: initialProblem, sessionId, onSubmitC
       // Load snippet for selected language
       const snippet = getSnippetForLang(selectedLang, initialProblem);
       setCode(snippet);
+      setResult(null);
+      setRunError('');
       return;
     }
 
@@ -242,6 +245,8 @@ export default function DSAPanel({ problem: initialProblem, sessionId, onSubmitC
          // Set code to the real LeetCode snippet for current language
          const snippet = getSnippetForLang(selectedLang, res.data);
          setCode(snippet);
+         setResult(null);
+         setRunError('');
       }).catch(err => {
          console.error("Failed to fetch full problem schema", err);
          setProblem(initialProblem);
@@ -285,7 +290,7 @@ export default function DSAPanel({ problem: initialProblem, sessionId, onSubmitC
     try {
       const { data } = await compilerAPI.run({
         code: currentCode,
-        language_id: selectedLang.id,
+        language: selectedLang.key,
         stdin: '',
       });
       setResult(data);
@@ -375,15 +380,15 @@ export default function DSAPanel({ problem: initialProblem, sessionId, onSubmitC
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '4px 10px', borderRadius: '4px', background: colors.bgHover, border: `1px solid ${colors.borderMid}`, cursor: 'pointer', fontSize: '13px', fontWeight: 600, fontFamily: "'Sora', sans-serif" }}>
               <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: colors.blue }}></div>
               <select
-                value={selectedLang.id}
+                value={selectedLang.key}
                 onChange={e => {
-                  const lang = LANGUAGES.find(l => l.id === Number(e.target.value));
+                  const lang = LANGUAGES.find(l => l.key === e.target.value);
                   if (lang) handleLangChange(lang);
                 }}
                 style={{ background: 'transparent', color: colors.blue, border: 'none', outline: 'none', cursor: 'pointer', paddingRight: '12px', WebkitAppearance: 'none', appearance: 'none', backgroundImage: `url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2210%22%20height%3D%2210%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23${colors.blue.replace('#', '')}%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right center' }}
               >
                 {LANGUAGES.map(lang => (
-                  <option key={lang.id} value={lang.id} style={{ background: colors.bgHover, color: colors.textPrim }}>{lang.name}</option>
+                  <option key={lang.key} value={lang.key} style={{ background: colors.bgHover, color: colors.textPrim }}>{lang.name}</option>
                 ))}
               </select>
             </div>
