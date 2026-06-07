@@ -281,9 +281,17 @@ export default function Interview() {
       }
 
       // Track DSA problem for this turn
+      // If a new DSA problem is returned, show it
+      // If no DSA problem BUT we're still in Round 1 with an active problem, keep showing it
+      // (This handles the case where AI didn't score, meaning user didn't answer yet)
       if (data.dsa_problem) {
         setActiveDsaProblem(data.dsa_problem);
+      } else if (data.current_round !== 1) {
+        // Left Round 1, clear DSA
+        setActiveDsaProblem(null);
       }
+      // If data.dsa_problem is null AND we're still in Round 1, 
+      // keep activeDsaProblem as-is (don't clear it)
 
       // Add assistant reply to chat
       const assistantMsg = {
