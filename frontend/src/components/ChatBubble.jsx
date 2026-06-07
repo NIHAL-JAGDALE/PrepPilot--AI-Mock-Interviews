@@ -9,6 +9,12 @@ function cleanFeedbackText(text) {
     .replace(/^QUESTION:\s*\d+\s*(of|\/)\s*\d+\s*$/gm, '')
     // Strip standalone --- separators
     .replace(/^-{3,}\s*$/gm, '')
+    // Strip N/A and "None" evaluation lines (welcome message safety net)
+    .replace(/^.*\bSCORE:\s*(N\/A|n\/a|none|-).*$/gim, '')
+    .replace(/^.*\bFEEDBACK:\s*(N\/A|n\/a|none|-).*$/gim, '')
+    .replace(/^.*WHAT A STRONG ANSWER.*:\s*(N\/A|n\/a|none|-).*$/gim, '')
+    .replace(/^.*WEAK AREAS.*:\s*(N\/A|n\/a|none|-).*$/gim, '')
+    .replace(/^.*Areas to Improve:\s*None.*$/gim, '')
     .replace(/--- SCORE:/g, '📊 Score:')
     .replace(/SCORE:/g, '📊 Score:')
     .replace(/FEEDBACK:/g, '📝 Feedback:')

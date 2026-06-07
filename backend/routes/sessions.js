@@ -316,52 +316,52 @@ router.post('/:id/message', async (req, res) => {
       console.log(`🎮 Control command detected: ${command}`);
     }
 
-    // ── DSA Pre-fetch: DSA questions are in Round 1 (turns 2+).
-    //    We detect DSA turns when current_round is 1 and turn > 1.
-    //    In v2, DSA can extend beyond 3 questions, so we check if
-    //    the AI is still in Round 1 and it's not the intro question. ──
-    let dsaProblem = null;
-    const upcomingTurn = session.turn_count + 1;
+    // ── DSA Problem Management ──
+    // Strategy: We pre-fetch the next potential DSA problem BEFORE calling the AI.
+    // If the AI is on a DSA question (or transitioning to one), we instruct it to use
+    // the pre-fetched problem IF it decides to advance the question.
+    // This keeps the AI generated text and the UI in perfect sync.
     const currentRound = session.current_round || 1;
+    const upcomingTurn = session.turn_count + 1;
 
-    // DSA turns: Round 1, questions 2+ (turn_count >= 2 in round 1)
-    // We cap DSA problem fetching at reasonable limits (turns 2-6)
-    if (currentRound === 1 && upcomingTurn >= 2 && upcomingTurn <= 6 && !command) {
+    // 1. Get the ACTIVE (existing) DSA problem if one exists
+    let existingDsaProblem = null;
+    if (currentRound === 1 && upcomingTurn >= 2) {
+      const existingResult = await pool.query(
+        `SELECT id, leetcode_slug AS slug, title, difficulty 
+         FROM dsa_problems 
+         WHERE session_id = $1 
+         ORDER BY turn_number DESC LIMIT 1`,
+        [id]
+      );
+      if (existingResult.rows.length > 0) {
+        existingDsaProblem = existingResult.rows[0];
+      }
+    }
+
+    // 2. Pre-fetch the UPCOMING problem (in case the AI advances)
+    let upcomingDsaProblem = null;
+    if (currentRound === 1) { // Only fetch in Round 1
       try {
         const usedResult = await pool.query(
           'SELECT leetcode_slug FROM dsa_problems WHERE session_id = $1',
           [id]
         );
         const usedSlugs = usedResult.rows.map(r => r.leetcode_slug);
-
-        dsaProblem = await getRandomProblem(session.company_type, usedSlugs);
-
-        await pool.query(
-          `INSERT INTO dsa_problems (session_id, turn_number, leetcode_slug, title, difficulty)
-           VALUES ($1, $2, $3, $4, $5)`,
-          [id, upcomingTurn, dsaProblem.slug, dsaProblem.title, dsaProblem.difficulty]
-        );
-
-        console.log(`🧩 DSA problem pre-fetched for turn ${upcomingTurn}: ${dsaProblem.title}`);
+        upcomingDsaProblem = await getRandomProblem(session.company_type, usedSlugs);
       } catch (dsaError) {
-        console.error('DSA problem fetch failed (non-fatal):', dsaError.message);
-        const difficulty = getDifficulty(session.company_type);
-        dsaProblem = getFallbackProblem(difficulty);
+        console.error('DSA problem fetch failed:', dsaError.message);
+        upcomingDsaProblem = getFallbackProblem(getDifficulty(session.company_type));
       }
     }
 
     // ── Build the content to send to AI ──
     let aiContent = content.trim();
 
-    // Inject DSA problem reference
-    if (dsaProblem) {
-      aiContent += `\n\n[SYSTEM: The coding problem for this DSA round is "${dsaProblem.title}" (${dsaProblem.difficulty}). Ask the candidate to solve this specific problem. Do NOT invent a different problem. Reference this title exactly in your NEXT QUESTION.]`;
-    }
-
     // Inject control command context
     if (command) {
       const commandInstructions = {
-        skip: '[SYSTEM: The candidate has used the "skip" command. Score this question as 0/10, move to the next question, and say "Question skipped. Let\'s move on."]',
+        skip: '[SYSTEM: The candidate has used the "skip" command. You MUST output your evaluation in the EXACT strict format (SCORE: 0/10, FEEDBACK: "Question skipped", etc.). In the NEXT QUESTION field, say "Question skipped. Let\'s move on." followed by the next question.]',
         hint: '[SYSTEM: The candidate has requested a "hint". Provide a helpful hint WITHOUT revealing the full answer. Internally deduct 1 point from the max possible score for this question.]',
         next_round: '[SYSTEM: The candidate has requested to move to the "next round". If the minimum question count for the current round has been met, transition to the next round with a proper announcement. If not met, inform them how many more questions they need to answer.]',
         end_interview: '[SYSTEM: The candidate has requested to "end interview". Generate the INTERVIEW_COMPLETE report immediately based on all questions answered so far. Mark any unanswered rounds as "Not Evaluated".]',
@@ -370,8 +370,66 @@ router.post('/:id/message', async (req, res) => {
       aiContent += `\n\n${commandInstructions[command]}`;
     }
 
+    // 3. Inject DSA instructions into the prompt
+    if (currentRound === 1) {
+      if (existingDsaProblem) {
+        aiContent += `\n\n[SYSTEM: The current DSA problem is "${existingDsaProblem.title}" (${existingDsaProblem.difficulty}).`;
+        if (!command) { // Only add scoring rules if not a command
+           aiContent += ` If the candidate has provided a genuine attempt at solving this problem, evaluate it. If they have NOT attempted the problem, do NOT score them — instead prompt them to attempt it.`;
+        }
+        if (upcomingDsaProblem) {
+            aiContent += `\nCRITICAL: If you evaluate the current problem (or it was skipped) and move to a new DSA question, your NEXT QUESTION MUST be the coding problem: "${upcomingDsaProblem.title}" (${upcomingDsaProblem.difficulty}). Do NOT invent a different problem. Reference this exact title. You CANNOT transition to Round 2 in this response; you MUST wait for the candidate to answer this new DSA question first.]`;
+        } else {
+            aiContent += `]`;
+        }
+      } else if (upcomingTurn === 2 && upcomingDsaProblem) {
+        // First DSA problem (turn 2)
+        aiContent += `\n\n[SYSTEM: This is the first DSA problem turn. Ask the candidate to solve this specific problem: "${upcomingDsaProblem.title}" (${upcomingDsaProblem.difficulty}). Do NOT invent a different problem. Reference this exact title.]`;
+      }
+    }
+
     // ── Route message through AI ──
     const aiResponse = await routeMessage(id, aiContent);
+
+    // ── Determine which DSA problem is now active ──
+    let dsaProblemToSave = null;
+    let finalDsaProblem = null;
+
+    if (currentRound === 1) {
+      const isTransitioningOut = aiResponse.reply.includes('Round 2') && aiResponse.reply.includes('Technical');
+      const aiScoredThisResponse = /SCORE:\s*\d+\s*\/\s*10/i.test(aiResponse.reply);
+      const aiAskedNextQuestion = aiResponse.reply.includes('NEXT QUESTION:');
+      
+      if (!isTransitioningOut) {
+        // We advance if AI scored and asked next question, OR if the command was skip
+        if ((aiScoredThisResponse && aiAskedNextQuestion) || command === 'skip') {
+           dsaProblemToSave = upcomingDsaProblem;
+        } else if (!existingDsaProblem && upcomingTurn === 2) {
+           // It's turn 2, presenting the first DSA problem. Lock it in even if AI dropped the NEXT QUESTION label by mistake.
+           dsaProblemToSave = upcomingDsaProblem;
+        } else {
+           // AI did not advance the question (e.g. clarification, hint, invalid answer)
+           finalDsaProblem = existingDsaProblem;
+        }
+      }
+    }
+
+    // 4. Save the new problem to DB if appropriate
+    if (dsaProblemToSave) {
+      try {
+        await pool.query(
+          `INSERT INTO dsa_problems (session_id, turn_number, leetcode_slug, title, difficulty)
+           VALUES ($1, $2, $3, $4, $5)`,
+          [id, upcomingTurn, dsaProblemToSave.slug, dsaProblemToSave.title, dsaProblemToSave.difficulty]
+        );
+        console.log(`🧩 New DSA problem locked in (turn ${upcomingTurn}): ${dsaProblemToSave.title}`);
+        finalDsaProblem = dsaProblemToSave;
+      } catch (err) {
+        console.error('Failed to insert new DSA problem:', err.message);
+      }
+    } else if (finalDsaProblem) {
+      console.log(`📌 Keeping current DSA problem: ${finalDsaProblem.title}`);
+    }
 
     // ── Detect round transitions from AI response ──
     let detectedRound = currentRound;
@@ -416,7 +474,7 @@ router.post('/:id/message', async (req, res) => {
       cache_status: aiResponse.cacheStatus,
       turn_count: aiResponse.turnCount,
       current_round: detectedRound,
-      dsa_problem: dsaProblem,
+      dsa_problem: finalDsaProblem,
       is_complete: isComplete,
       report: report,
       control_command: command,
