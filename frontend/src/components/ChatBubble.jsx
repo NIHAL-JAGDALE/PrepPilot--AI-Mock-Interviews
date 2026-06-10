@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import ProviderBadge from './ProviderBadge';
 import TokenStats from './TokenStats';
 import EvalCard from './EvalCard';
@@ -35,16 +36,63 @@ function parseAIContent(content) {
     return {
       isSplit: true,
       feedbackParas: feedbackPart.split(/\n+/).filter(Boolean),
-      nextParas: nextQPart.split(/\n+/).filter(Boolean)
+      nextParas: nextQPart.split(/\n+/).filter(Boolean),
+      questionText: nextQPart, // Raw question text for TTS
     };
   }
 
   const cleaned = cleanFeedbackText(displayContent);
   const paras = cleaned.split(/\n+/).filter(Boolean);
-  return { isSplit: false, paras };
+  return { isSplit: false, paras, questionText: null };
 }
 
-export default function ChatBubble({ role, content, provider, model, cacheStatus, tokenStats }) {
+// ─── SPEAKER BUTTON ────────────────────────────────────────
+// A small replay button that lets the user re-hear the question.
+function SpeakerButton({ text, ttsSpeak, isSpeaking }) {
+  if (!text || !ttsSpeak) return null;
+
+  return (
+    <button
+      onClick={() => ttsSpeak(text)}
+      title={isSpeaking ? 'Speaking…' : 'Replay question'}
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: 28,
+        height: 28,
+        borderRadius: 8,
+        border: '1px solid #E2E8F0',
+        background: isSpeaking ? '#F0FDF4' : '#F8FAFC',
+        color: isSpeaking ? '#16A34A' : '#6B7A99',
+        fontSize: 14,
+        cursor: 'pointer',
+        transition: 'all 0.2s',
+        flexShrink: 0,
+        marginLeft: 6,
+      }}
+      onMouseEnter={e => {
+        e.currentTarget.style.borderColor = '#1DB954';
+        e.currentTarget.style.background = '#F0FDF4';
+        e.currentTarget.style.color = '#1DB954';
+      }}
+      onMouseLeave={e => {
+        e.currentTarget.style.borderColor = '#E2E8F0';
+        e.currentTarget.style.background = isSpeaking ? '#F0FDF4' : '#F8FAFC';
+        e.currentTarget.style.color = isSpeaking ? '#16A34A' : '#6B7A99';
+      }}
+    >
+      {isSpeaking ? (
+        // Animated speaker icon when speaking
+        <span style={{ animation: 'pulse-dot 1.5s ease-in-out infinite' }}>🔊</span>
+      ) : (
+        '🔊'
+      )}
+    </button>
+  );
+}
+
+export default function ChatBubble({ role, content, provider, model, cacheStatus, tokenStats, ttsSpeak, isSpeaking }) {
   const isUser = role === 'user';
 
   if (isUser) {
@@ -63,7 +111,7 @@ export default function ChatBubble({ role, content, provider, model, cacheStatus
     );
   }
 
-  const { isSplit, paras, feedbackParas, nextParas } = parseAIContent(content);
+  const { isSplit, paras, feedbackParas, nextParas, questionText } = parseAIContent(content);
 
   return (
     <div style={{ display: 'flex', gap: 10, margin: '0 auto 16px', maxWidth: 1000, alignItems: 'flex-start', animation: 'fadeIn .35s ease' }}>
@@ -95,17 +143,22 @@ export default function ChatBubble({ role, content, provider, model, cacheStatus
               })}
             </div>
 
-            {/* Next Question Bubble */}
+            {/* Next Question Bubble — with speaker replay button */}
             <div style={{
               background: '#fff', border: '1px solid #1DB954',
               borderRadius: '4px 18px 18px 18px', padding: '14px 18px',
               boxShadow: '0 4px 14px rgba(29,185,84,0.08)'
             }}>
-              {nextParas.map((p, i) => (
-                <p key={i} style={{ fontSize: 14, lineHeight: 1.75, color: '#1A2B4A', marginTop: i > 0 ? 10 : 0, fontWeight: 500 }}>
-                  {p}
-                </p>
-              ))}
+              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
+                <div style={{ flex: 1 }}>
+                  {nextParas.map((p, i) => (
+                    <p key={i} style={{ fontSize: 14, lineHeight: 1.75, color: '#1A2B4A', marginTop: i > 0 ? 10 : 0, fontWeight: 500 }}>
+                      {p}
+                    </p>
+                  ))}
+                </div>
+                <SpeakerButton text={questionText} ttsSpeak={ttsSpeak} isSpeaking={isSpeaking} />
+              </div>
             </div>
           </>
         ) : (
@@ -114,11 +167,19 @@ export default function ChatBubble({ role, content, provider, model, cacheStatus
             borderRadius: '4px 18px 18px 18px', padding: '14px 18px',
             boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
           }}>
-            {paras.map((p, i) => (
-              <p key={i} style={{ fontSize: 13.5, lineHeight: 1.75, color: '#374151', marginTop: i > 0 ? 10 : 0 }}>
-                {p}
-              </p>
-            ))}
+            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
+              <div style={{ flex: 1 }}>
+                {paras.map((p, i) => (
+                  <p key={i} style={{ fontSize: 13.5, lineHeight: 1.75, color: '#374151', marginTop: i > 0 ? 10 : 0 }}>
+                    {p}
+                  </p>
+                ))}
+              </div>
+              {/* Show speaker button on non-evaluation messages (likely questions) */}
+              {!content.includes('SCORE:') && (
+                <SpeakerButton text={content} ttsSpeak={ttsSpeak} isSpeaking={isSpeaking} />
+              )}
+            </div>
           </div>
         )}
 

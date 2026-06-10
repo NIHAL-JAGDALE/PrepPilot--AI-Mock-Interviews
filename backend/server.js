@@ -7,6 +7,7 @@ import sessionRoutes from './routes/sessions.js';
 import compilerRoutes from './routes/compiler.js';
 import problemRoutes from './routes/problems.js';
 import reportRoutes from './routes/reports.js';
+import transcribeRoutes from './routes/transcribe.js';
 
 // Load environment variables from .env file
 dotenv.config();
@@ -59,6 +60,7 @@ app.use('/api/sessions', sessionRoutes);
 app.use('/api/compiler', compilerRoutes);
 app.use('/api/problems', problemRoutes);
 app.use('/api/reports', reportRoutes);
+app.use('/api/transcribe', transcribeRoutes);
 
 // ─── 404 HANDLER ──────────────────────────────────────────
 app.use((req, res) => {

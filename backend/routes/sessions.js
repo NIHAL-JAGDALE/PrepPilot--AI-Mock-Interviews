@@ -324,24 +324,29 @@ router.post('/:id/message', async (req, res) => {
     const currentRound = session.current_round || 1;
     const upcomingTurn = session.turn_count + 1;
 
+    // Detect if we have hit the DSA limit based on role.
+    const dsaLimits = { dsa_focus: 5, backend: 4, fullstack: 4, frontend: 3 };
+    const dsaQuestionLimit = dsaLimits[session.role_type] || 3;
+    let dsaQuestionsAsked = 0;
+    
     // 1. Get the ACTIVE (existing) DSA problem if one exists
     let existingDsaProblem = null;
-    if (currentRound === 1 && upcomingTurn >= 2) {
-      const existingResult = await pool.query(
-        `SELECT id, leetcode_slug AS slug, title, difficulty 
-         FROM dsa_problems 
-         WHERE session_id = $1 
-         ORDER BY turn_number DESC LIMIT 1`,
+    if (currentRound === 1) {
+      const usedResult = await pool.query(
+        'SELECT id, leetcode_slug AS slug, title, difficulty FROM dsa_problems WHERE session_id = $1 ORDER BY turn_number DESC',
         [id]
       );
-      if (existingResult.rows.length > 0) {
-        existingDsaProblem = existingResult.rows[0];
+      dsaQuestionsAsked = usedResult.rows.length;
+      if (upcomingTurn >= 2 && usedResult.rows.length > 0) {
+        existingDsaProblem = usedResult.rows[0];
       }
     }
+    
+    const round1Complete = dsaQuestionsAsked >= dsaQuestionLimit;
 
     // 2. Pre-fetch the UPCOMING problem (in case the AI advances)
     let upcomingDsaProblem = null;
-    if (currentRound === 1) { // Only fetch in Round 1
+    if (currentRound === 1 && !round1Complete) { // Only fetch in Round 1 if not complete
       try {
         const usedResult = await pool.query(
           'SELECT leetcode_slug FROM dsa_problems WHERE session_id = $1',
@@ -379,6 +384,8 @@ router.post('/:id/message', async (req, res) => {
         }
         if (upcomingDsaProblem) {
             aiContent += `\nCRITICAL: If you evaluate the current problem (or it was skipped) and move to a new DSA question, your NEXT QUESTION MUST be the coding problem: "${upcomingDsaProblem.title}" (${upcomingDsaProblem.difficulty}). Do NOT invent a different problem. Reference this exact title. You CANNOT transition to Round 2 in this response; you MUST wait for the candidate to answer this new DSA question first.]`;
+        } else if (round1Complete) {
+            aiContent += `\nCRITICAL: You have reached the MAXIMUM limit of ${dsaQuestionLimit} DSA questions for this candidate based on their role (${session.role_type}). After evaluating the current problem, YOU MUST announce Round 1 complete and transition to Round 2 immediately. DO NOT ASK ANY MORE DSA QUESTIONS.]`;
         } else {
             aiContent += `]`;
         }
@@ -394,6 +401,7 @@ router.post('/:id/message', async (req, res) => {
     // ── Determine which DSA problem is now active ──
     let dsaProblemToSave = null;
     let finalDsaProblem = null;
+    let detectedRound = currentRound;
 
     if (currentRound === 1) {
       const isTransitioningOut = aiResponse.reply.includes('Round 2') && aiResponse.reply.includes('Technical');
@@ -401,8 +409,11 @@ router.post('/:id/message', async (req, res) => {
       const aiAskedNextQuestion = aiResponse.reply.includes('NEXT QUESTION:');
       
       if (!isTransitioningOut) {
-        // We advance if AI scored and asked next question, OR if the command was skip
-        if ((aiScoredThisResponse && aiAskedNextQuestion) || command === 'skip') {
+        if (round1Complete && aiScoredThisResponse && aiAskedNextQuestion) {
+           // Fallback: If AI fails to output the transition announcement even after hitting the cap, force it out.
+           detectedRound = 2;
+           finalDsaProblem = null;
+        } else if ((aiScoredThisResponse && aiAskedNextQuestion) || command === 'skip') {
            dsaProblemToSave = upcomingDsaProblem;
         } else if (!existingDsaProblem && upcomingTurn === 2) {
            // It's turn 2, presenting the first DSA problem. Lock it in even if AI dropped the NEXT QUESTION label by mistake.
@@ -432,7 +443,6 @@ router.post('/:id/message', async (req, res) => {
     }
 
     // ── Detect round transitions from AI response ──
-    let detectedRound = currentRound;
     const roundMatch = aiResponse.reply.match(/ROUND:\s*(\d+)/i);
     if (roundMatch) {
       detectedRound = parseInt(roundMatch[1]);

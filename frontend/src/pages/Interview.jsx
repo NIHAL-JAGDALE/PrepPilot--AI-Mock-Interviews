@@ -6,6 +6,7 @@ import EvalCard from '../components/EvalCard';
 import ProviderBadge from '../components/ProviderBadge';
 import TokenStats from '../components/TokenStats';
 import DSAPanel from '../components/DSAPanel';
+import { useTTS, useSTT, extractQuestionText } from '../hooks/useSpeech';
 
 const ROUND_NAMES = {
   0: "Preparing...",
@@ -136,6 +137,54 @@ function CameraFeed() {
   );
 }
 
+// ─── STT ERROR TOAST ──────────────────────────────────────
+function STTErrorToast({ message, onDismiss }) {
+  if (!message) return null;
+  return (
+    <div style={{
+      position: 'fixed', bottom: 90, left: '50%', transform: 'translateX(-50%)',
+      background: '#FEF2F2', border: '1px solid #FECACA', color: '#991B1B',
+      padding: '10px 20px', borderRadius: 12, fontSize: 13, fontWeight: 500,
+      boxShadow: '0 8px 24px rgba(0,0,0,0.1)', zIndex: 10000,
+      display: 'flex', alignItems: 'center', gap: 10,
+      animation: 'fadeIn 0.3s ease',
+    }}>
+      <span>⚠️ {message}</span>
+      <button onClick={onDismiss} style={{
+        background: 'none', border: 'none', color: '#991B1B', cursor: 'pointer',
+        fontSize: 16, lineHeight: 1, padding: '0 4px',
+      }}>✕</button>
+    </div>
+  );
+}
+
+// ─── BROWSER UNSUPPORTED NOTICE ───────────────────────────
+function BrowserNotice() {
+  const [show, setShow] = useState(false);
+
+  useEffect(() => {
+    // STT now uses MediaRecorder which works everywhere.
+    // TTS still relies on window.speechSynthesis.
+    const noTTS = !('speechSynthesis' in window);
+    if (noTTS) setShow(true);
+  }, []);
+
+  if (!show) return null;
+
+  return (
+    <div style={{
+      background: '#FFFBEB', border: '1px solid #FDE68A', borderRadius: 10,
+      padding: '8px 16px', margin: '0 28px 8px', fontSize: 12, color: '#92400E',
+      display: 'flex', alignItems: 'center', gap: 8,
+    }}>
+      <span>⚠️</span>
+      <span>Text-to-Speech (AI voice) works best in <strong>Chrome</strong> or <strong>Edge</strong>, and may be unavailable in your current browser.</span>
+      <button onClick={() => setShow(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#92400E', fontWeight: 700, marginLeft: 'auto' }}>✕</button>
+    </div>
+  );
+}
+
+
 // ════════════════════════════════════════════════════════════
 // MAIN INTERVIEW PAGE
 // ════════════════════════════════════════════════════════════
@@ -168,6 +217,26 @@ export default function Interview() {
 
   const [chatWidth, setChatWidth] = useState(50);
 
+  // ── TTS (Text-to-Speech) ──
+  const tts = useTTS();
+
+  // ── STT (Speech-to-Text) ──
+  // onTranscript callback: appends transcribed text to input (doesn't replace)
+  const handleTranscript = useCallback((transcript) => {
+    setInput(prev => {
+      const separator = prev && !prev.endsWith(' ') ? ' ' : '';
+      return prev + separator + transcript;
+    });
+  }, []);
+
+  // onInterim callback: shows "Transcribing..." status while processing
+  const [sttStatus, setSttStatus] = useState(null);
+  const handleInterim = useCallback((status) => {
+    setSttStatus(status);
+  }, []);
+
+  const stt = useSTT(handleTranscript, handleInterim);
+
   const startMainResize = useCallback((e) => {
     e.preventDefault();
     const onMouseMove = (moveEvent) => {
@@ -196,6 +265,30 @@ export default function Interview() {
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, sending]);
+
+  // ── Auto-play TTS when a new assistant message arrives ──
+  // Only triggers for the latest message to avoid replaying on re-render.
+  const prevMessageCountRef = useRef(0);
+  useEffect(() => {
+    if (messages.length > prevMessageCountRef.current) {
+      const lastMsg = messages[messages.length - 1];
+      if (lastMsg?.role === 'assistant') {
+        const questionText = extractQuestionText(lastMsg.content);
+        if (questionText) {
+          tts.speakNewQuestion(questionText);
+        }
+      }
+    }
+    prevMessageCountRef.current = messages.length;
+  }, [messages, tts.speakNewQuestion]);
+
+  // ── Cancel TTS on unmount ──
+  useEffect(() => {
+    return () => {
+      tts.cancel();
+      stt.stopListening();
+    };
+  }, []);
 
   const loadSession = async () => {
     try {
@@ -245,6 +338,12 @@ export default function Interview() {
     const trimmed = input.trim();
     if (!trimmed || sending) return;
 
+    // Stop STT if currently listening
+    if (stt.isListening) stt.stopListening();
+
+    // Cancel any ongoing TTS when user sends a message
+    tts.cancel();
+
     // Append compiler result to message if available
     let finalContent = trimmed;
     if (lastRunResult) {
@@ -281,17 +380,11 @@ export default function Interview() {
       }
 
       // Track DSA problem for this turn
-      // If a new DSA problem is returned, show it
-      // If no DSA problem BUT we're still in Round 1 with an active problem, keep showing it
-      // (This handles the case where AI didn't score, meaning user didn't answer yet)
       if (data.dsa_problem) {
         setActiveDsaProblem(data.dsa_problem);
-      } else if (data.current_round !== 1) {
-        // Left Round 1, clear DSA
+      } else {
         setActiveDsaProblem(null);
       }
-      // If data.dsa_problem is null AND we're still in Round 1, 
-      // keep activeDsaProblem as-is (don't clear it)
 
       // Add assistant reply to chat
       const assistantMsg = {
@@ -338,6 +431,9 @@ export default function Interview() {
     setInput('');
     setSending(true);
 
+    // Cancel TTS on command
+    tts.cancel();
+
     const userMsg = { role: 'user', content: cmd };
     setMessages(prev => [...prev, userMsg]);
 
@@ -358,7 +454,11 @@ export default function Interview() {
         }
       }
 
-      if (data.dsa_problem) setActiveDsaProblem(data.dsa_problem);
+      if (data.dsa_problem) {
+        setActiveDsaProblem(data.dsa_problem);
+      } else {
+        setActiveDsaProblem(null);
+      }
 
       const assistantMsg = {
         role: 'assistant',
@@ -446,6 +546,58 @@ export default function Interview() {
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          {/* TTS Mute/Unmute Toggle & Voice Selector */}
+          {tts.isSupported && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <button
+                id="tts-toggle"
+                onClick={tts.toggleMute}
+                title={tts.isMuted ? 'Unmute AI voice' : 'Mute AI voice'}
+                style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  gap: 5, padding: '6px 12px', borderRadius: '50px 0 0 50px',
+                  border: `1.5px solid ${tts.isMuted ? '#E2E8F0' : '#BBF7D0'}`,
+                  borderRight: 'none',
+                  background: tts.isMuted ? '#F8FAFC' : '#F0FDF4',
+                  color: tts.isMuted ? '#94A3B8' : '#16A34A',
+                  fontSize: 11, fontWeight: 700, cursor: 'pointer',
+                  fontFamily: 'DM Sans, sans-serif', transition: 'all .25s',
+                  height: 30,
+                }}
+              >
+                <span style={{ fontSize: 13 }}>{tts.isMuted ? '🔇' : '🔊'}</span>
+                <span>{tts.isMuted ? 'Voice Off' : 'Voice On'}</span>
+              </button>
+
+              {tts.voices.length > 0 && (
+                <select
+                  value={tts.selectedVoiceUri}
+                  onChange={(e) => tts.changeVoice(e.target.value)}
+                  disabled={tts.isMuted}
+                  title="Select AI Voice"
+                  style={{
+                    padding: '0 24px 0 10px',
+                    borderRadius: '0 50px 50px 0',
+                    border: `1.5px solid ${tts.isMuted ? '#E2E8F0' : '#BBF7D0'}`,
+                    background: tts.isMuted ? '#F8FAFC' : '#fff',
+                    color: tts.isMuted ? '#CBD5E1' : '#475569',
+                    fontSize: 11, fontWeight: 700, cursor: tts.isMuted ? 'not-allowed' : 'pointer',
+                    fontFamily: 'DM Sans, sans-serif', outline: 'none',
+                    height: 30,
+                    maxWidth: 130,
+                    textOverflow: 'ellipsis',
+                    borderLeft: '1px solid #E2E8F0',
+                  }}
+                >
+                  {tts.voices.map(voice => (
+                    <option key={voice.voiceURI} value={voice.voiceURI}>
+                      {voice.name.replace(/Google|Microsoft|Natural/gi, '').replace(/English/i, 'EN').trim() || voice.name}
+                    </option>
+                  ))}
+                </select>
+              )}
+            </div>
+          )}
           <TokenStats cacheStatus={latestCacheStatus} />
           <button onClick={() => navigate(`/report/${id}`)} style={{ padding: '7px 14px', borderRadius: 50, border: '1.5px solid #FCA5A5', background: '#FFF5F5', color: '#EF4444', fontSize: 11, fontWeight: 700, cursor: 'pointer', fontFamily: 'DM Sans, sans-serif', transition: 'all .2s' }}>End Interview</button>
         </div>
@@ -463,6 +615,9 @@ export default function Interview() {
           </div>
         </div>
       )}
+
+      {/* Browser compatibility notice */}
+      <BrowserNotice />
 
       {/* MAIN CONTENT SPLIT */}
       <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
@@ -484,6 +639,8 @@ export default function Interview() {
                   role={msg.role} content={msg.content}
                   provider={msg.provider} model={msg.model}
                   cacheStatus={msg.cacheStatus} tokenStats={msg.tokenStats}
+                  ttsSpeak={tts.speak}
+                  isSpeaking={tts.isSpeaking}
                 />
                 {msg.role === 'assistant' && msg.isComplete && (
                    <div style={{ background: '#F0FDF4', border: '1px solid #BBF7D0', borderRadius: 16, padding: 20, textAlign: 'center', margin: '0 auto 24px', maxWidth: '80%', animation: 'fadeIn .5s ease' }}>
@@ -519,6 +676,32 @@ export default function Interview() {
                     style={{ flex: 1, background: 'none', border: 'none', outline: 'none', color: '#1A2B4A', fontFamily: 'DM Sans, sans-serif', fontSize: 13.5, lineHeight: 1.6, resize: 'none', minHeight: 20, maxHeight: 90, overflowY: 'auto' }}
                   />
                 </div>
+
+                {/* ── Microphone (STT) Button ── */}
+                {stt.isSupported && (
+                  <button
+                    id="stt-mic-button"
+                    onClick={stt.toggleListening}
+                    disabled={sending}
+                    title={stt.isListening ? 'Stop listening' : 'Start voice input'}
+                    style={{
+                      width: 42, height: 42, borderRadius: 12, border: 'none',
+                      background: stt.isListening ? '#EF4444' : '#F0FDF4',
+                      color: stt.isListening ? '#fff' : '#16A34A',
+                      fontSize: 18, cursor: sending ? 'not-allowed' : 'pointer',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      flexShrink: 0, transition: 'all .25s',
+                      boxShadow: stt.isListening
+                        ? '0 0 0 4px rgba(239,68,68,0.2), 0 3px 10px rgba(239,68,68,0.25)'
+                        : '0 2px 8px rgba(29,185,84,0.1)',
+                      animation: stt.isListening ? 'pulse-glow-red 1.5s ease-in-out infinite' : 'none',
+                      opacity: sending ? 0.4 : 1,
+                    }}
+                  >
+                    🎙️
+                  </button>
+                )}
+
                 <button
                    onClick={handleSend}
                    disabled={sending || !input.trim()}
@@ -527,14 +710,40 @@ export default function Interview() {
                   {sending ? '...' : '↑'}
                 </button>
               </div>
+
+              {/* Controls row */}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 10, maxWidth: 1200, margin: '10px auto 0' }}>
-                <div style={{ display: 'flex', gap: 8 }}>
+                <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                   <button onClick={() => sendCommand('hint')} disabled={sending} style={{ padding: '4px 10px', fontSize: 11, borderRadius: 6, border: '1px solid #E2E8F0', background: '#F8FAFC', color: '#475569', cursor: sending ? 'not-allowed' : 'pointer' }}>💡 Hint</button>
                   <button onClick={() => sendCommand('skip')} disabled={sending} style={{ padding: '4px 10px', fontSize: 11, borderRadius: 6, border: '1px solid #E2E8F0', background: '#F8FAFC', color: '#475569', cursor: sending ? 'not-allowed' : 'pointer' }}>⏭️ Skip</button>
                   <button onClick={() => sendCommand('next round')} disabled={sending} style={{ padding: '4px 10px', fontSize: 11, borderRadius: 6, border: '1px solid #E2E8F0', background: '#F8FAFC', color: '#475569', cursor: sending ? 'not-allowed' : 'pointer' }}>⏩ Next Round</button>
+                  {/* Listening / Transcribing indicator */}
+                  {stt.isListening && (
+                    <div style={{
+                      display: 'inline-flex', alignItems: 'center', gap: 6,
+                      background: '#FEF2F2', border: '1px solid #FECACA',
+                      color: '#EF4444', padding: '4px 12px', borderRadius: 50,
+                      fontSize: 11, fontWeight: 700, animation: 'fadeIn 0.3s ease',
+                    }}>
+                      <span style={{ width: 6, height: 6, background: '#EF4444', borderRadius: '50%', display: 'inline-block', animation: 'pulse-dot 1s ease-in-out infinite' }}></span>
+                      {sttStatus || 'Listening…'}
+                    </div>
+                  )}
+                  {!stt.isListening && stt.isProcessing && (
+                    <div style={{
+                      display: 'inline-flex', alignItems: 'center', gap: 6,
+                      background: '#FFF7ED', border: '1px solid #FDE68A',
+                      color: '#92400E', padding: '4px 12px', borderRadius: 50,
+                      fontSize: 11, fontWeight: 700, animation: 'fadeIn 0.3s ease',
+                    }}>
+                      <span style={{ width: 6, height: 6, background: '#F59E0B', borderRadius: '50%', display: 'inline-block', animation: 'pulse-dot 1s ease-in-out infinite' }}></span>
+                      Finalizing…
+                    </div>
+                  )}
                 </div>
                 <div style={{ display: 'flex', gap: 12, fontSize: 10, color: '#9CA3AF' }}>
                   <span>Enter to send · Shift+Enter for new line</span>
+                  {stt.isSupported && <span>🎙️ Voice input available</span>}
                   {isDSATurn && <span>🧩 DSA Round</span>}
                   {input.length > 0 && <span>{input.length} chars</span>}
                 </div>
@@ -564,6 +773,9 @@ export default function Interview() {
         )}
 
       </div>
+
+      {/* STT Error Toast */}
+      <STTErrorToast message={stt.error} onDismiss={() => {}} />
     </div>
   );
 }
