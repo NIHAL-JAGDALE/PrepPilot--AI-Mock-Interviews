@@ -98,4 +98,18 @@ export const reportAPI = {
   get: (sessionId) => client.get(`/reports/${sessionId}`),
 };
 
+// ─── TRANSCRIPTION HELPERS ────────────────────────────────
+
+export const transcribeAPI = {
+  /** Send an audio Blob to Groq Whisper for transcription */
+  transcribe: (audioBlob) => {
+    const formData = new FormData();
+    formData.append('audio', audioBlob, 'recording.webm');
+    return client.post('/transcribe', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+      timeout: 30000, // 30s timeout for transcription
+    });
+  },
+};
+
 export default client;

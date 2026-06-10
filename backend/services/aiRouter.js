@@ -140,7 +140,10 @@ export async function routeMessage(sessionId, userMessage) {
 
   const session = sessionResult.rows[0];
   const resumeProvided = !!(session.resume_text && session.resume_text.trim().length > 0);
-  const systemPrompt = generateSystemPrompt(session.company_type, session.role_type, resumeProvided);
+  
+  const dsaLimits = { dsa_focus: 5, backend: 4, fullstack: 4, frontend: 3 };
+  const dsaQuestionLimit = dsaLimits[session.role_type] || 3;
+  const systemPrompt = generateSystemPrompt(session.company_type, session.role_type, resumeProvided, dsaQuestionLimit);
 
   // ── 2. Save user message to DB ──
   await pool.query(
