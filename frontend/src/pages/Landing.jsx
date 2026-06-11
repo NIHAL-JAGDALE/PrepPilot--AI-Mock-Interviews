@@ -148,6 +148,7 @@ export default function Landing() {
       {/* ─── NAV ─────────────────────────────────────────── */}
       <nav className="pp-nav" style={{ boxShadow: navScrolled ? '0 4px 24px rgba(0,0,0,0.08)' : 'none' }}>
         <a href="/" className="pp-logo text-decoration-none" style={{ textDecoration: 'none' }}>
+          <img src="/Images/photos/light_theme_logo.png" alt="PrepPilot Logo" style={{ height: 40 }} />
           PrepPilot<sup>AI</sup>
         </a>
         <div style={{ display: 'flex', gap: 36 }}>
@@ -207,10 +208,15 @@ export default function Landing() {
             }}>
               Crack Your{' '}
               <span style={{
-                display: 'inline-flex', alignItems: 'center', gap: 6,
+                display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
                 background: 'var(--green)', color: '#fff',
-                padding: '4px 16px', borderRadius: 50, fontSize: '0.85em'
-              }}>→</span>{' '}
+                padding: '4px 16px', borderRadius: 50
+              }}>
+                <svg width="0.85em" height="0.85em" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="5" y1="12" x2="19" y2="12"></line>
+                  <polyline points="12 5 19 12 12 19"></polyline>
+                </svg>
+              </span>{' '}
               Dream Job with <span style={{ color: 'var(--green)' }}>AI-Powered</span> Mock Interviews
             </h1>
 
@@ -610,16 +616,16 @@ export default function Landing() {
       </div>
 
       {/* ─── CTA BANNER ───────────────────────────────────── */}
-      <div style={{ margin: '0 60px 80px' }}>
+      <div className="cta-banner-wrapper">
         <div className="cta-banner">
           <h2 style={{ fontSize: 42, color: '#fff', fontWeight: 800, marginBottom: 16, position: 'relative' }}>
-            Crack Your Dream Role —<br />One Session Away
+            Unlock Your Dream Role - One Session Away
           </h2>
           <p style={{ fontSize: 17, color: 'rgba(255,255,255,0.6)', marginBottom: 36, position: 'relative' }}>
-            Join PrepPilot and step into your next placement interview with complete confidence.
+            Join PrepPilot AI-powered interview simulator and step into your next opportunity with confidence.
           </p>
-          <Link to="/register" className="btn-primary animate-pulse-glow" style={{ fontSize: 16, padding: '18px 40px', position: 'relative' }}>
-            🚀 Start Free Interview
+          <Link to="/register" className="btn-primary animate-pulse-glow" style={{ fontSize: 16, padding: '16px 36px', position: 'relative' }}>
+            Get Started
           </Link>
         </div>
       </div>
@@ -645,6 +651,7 @@ export default function Landing() {
         <div style={{ display: 'flex', gap: 60, marginBottom: 48 }}>
           <div style={{ flex: '0 0 260px' }}>
             <a href="/" className="pp-logo pp-logo-dark" style={{ textDecoration: 'none', display: 'flex', marginBottom: 16 }}>
+              <img src="/Images/photos/dark_theme_logo.png" alt="PrepPilot Logo" style={{ height: 40 }} />
               PrepPilot<sup>AI</sup>
             </a>
             <p style={{ fontSize: 14, lineHeight: 1.7, color: 'rgba(255,255,255,0.4)' }}>

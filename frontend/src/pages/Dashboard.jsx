@@ -70,6 +70,7 @@ export default function Dashboard() {
       <header className="dash-header">
         <div style={{ maxWidth: 1200, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <Link to="/dashboard" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 6, fontFamily: 'Sora, sans-serif', fontWeight: 800, fontSize: 22, color: 'var(--text)' }}>
+            <img src="/Images/photos/light_theme_logo.png" alt="PrepPilot Logo" style={{ height: 40 }} />
             PrepPilot<sup style={{ fontSize: 10, background: 'var(--green)', color: '#fff', padding: '2px 5px', borderRadius: 4, fontWeight: 700, verticalAlign: 'super', marginLeft: 2 }}>AI</sup>
           </Link>
           <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
@@ -233,8 +234,8 @@ export default function Dashboard() {
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={chartData} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#E8ECF2" vertical={false} />
-                      <XAxis dataKey="name" stroke="#6B7A99" fontSize={11} tickLine={false} axisLine={false} />
-                      <YAxis stroke="#6B7A99" fontSize={11} tickLine={false} axisLine={false} domain={[0, 100]} />
+                      <XAxis dataKey="name" stroke="#6B8A6E" fontSize={11} tickLine={false} axisLine={false} />
+                      <YAxis stroke="#6B8A6E" fontSize={11} tickLine={false} axisLine={false} domain={[0, 100]} />
                       <Tooltip content={<CustomTooltip />} />
                       <Line
                         type="monotone" dataKey="score" stroke="#1DB954" strokeWidth={3}

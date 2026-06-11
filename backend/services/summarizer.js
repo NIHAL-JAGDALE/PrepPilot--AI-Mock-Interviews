@@ -56,8 +56,8 @@ export async function summarizeIfNeeded(sessionId, currentProvider, systemPrompt
 
     const { turn_count } = sessionResult.rows[0];
 
-    // Only summarize after 5 turns
-    if (turn_count <= 5) return false;
+    // Only summarize after 2 turns
+    if (turn_count <= 2) return false;
 
     // ── Check if we already have a recent summary ──
     // Don't re-summarize if we just did it
@@ -75,9 +75,9 @@ export async function summarizeIfNeeded(sessionId, currentProvider, systemPrompt
       [sessionId]
     );
 
-    // Only summarize if there are more than 6 unsummarized messages
-    // (3 turns = 6 messages: 3 user + 3 assistant)
-    if (parseInt(unsummarizedCount.rows[0].count) <= 6) return false;
+    // Only summarize if there are more than 4 unsummarized messages
+    // (2 turns = 4 messages: 2 user + 2 assistant)
+    if (parseInt(unsummarizedCount.rows[0].count) <= 4) return false;
 
     console.log(`📝 Summarizing session ${sessionId} (turn ${turn_count})...`);
 
@@ -91,9 +91,9 @@ export async function summarizeIfNeeded(sessionId, currentProvider, systemPrompt
 
     const allMessages = messagesResult.rows;
 
-    // ── Separate: keep last 3 turns (6 messages), summarize the rest ──
+    // ── Separate: keep last 2 turns (4 messages), summarize the rest ──
     // A "turn" = 1 user message + 1 assistant response
-    const keepCount = 6; // last 3 turns
+    const keepCount = 4; // last 2 turns
     const toSummarize = allMessages.slice(0, -keepCount);
 
     if (toSummarize.length === 0) return false;
@@ -115,7 +115,7 @@ export async function summarizeIfNeeded(sessionId, currentProvider, systemPrompt
     let summaryResponse;
 
     const providerMap = { claude, openai, groq };
-    const provider = providerMap[currentProvider];
+    const provider = providerMap[currentProvider] || (currentProvider.startsWith('groq') ? groq : null);
 
     if (!provider) {
       console.error(`Unknown provider for summarization: ${currentProvider}`);
@@ -125,7 +125,7 @@ export async function summarizeIfNeeded(sessionId, currentProvider, systemPrompt
     summaryResponse = await provider.sendMessage(
       systemPrompt,
       formattedMessages,
-      { maxTokens: 150, temperature: 0.3 } // Low temp for factual summary
+      { maxTokens: 150, temperature: 0.3, providerName: currentProvider } // Low temp for factual summary
     );
 
     const summaryContent = summaryResponse.content;
@@ -158,7 +158,7 @@ export async function summarizeIfNeeded(sessionId, currentProvider, systemPrompt
     );
 
     console.log(`✅ Summarized ${toSummarize.length} messages into ~100 tokens`);
-    console.log(`   Kept last ${keepCount} messages (3 turns) unsummarized`);
+    console.log(`   Kept last ${keepCount} messages (2 turns) unsummarized`);
 
     return true;
   } catch (error) {
@@ -185,11 +185,11 @@ export async function getOptimizedContext(sessionId) {
     [sessionId]
   );
 
-  // Fetch last 3 turns (non-superseded, non-summary)
+  // Fetch last 2 turns (non-superseded, non-summary)
   const recentResult = await pool.query(
     `SELECT role, content FROM messages
      WHERE session_id = $1 AND superseded = FALSE AND role != 'summary'
-     ORDER BY created_at DESC LIMIT 6`,
+     ORDER BY created_at DESC LIMIT 4`,
     [sessionId]
   );
 

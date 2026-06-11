@@ -40,15 +40,14 @@ export function formatForProvider(messages, provider) {
   const alternated = enforceAlternation(filtered);
 
   // Step 4: Apply provider-specific formatting
-  switch (provider) {
-    case 'claude':
-      return formatForClaude(alternated);
-    case 'openai':
-      return formatForOpenAI(alternated);
-    case 'groq':
-      return formatForGroq(alternated);
-    default:
-      throw new Error(`Unknown provider: ${provider}`);
+  if (provider === 'claude') {
+    return formatForClaude(alternated);
+  } else if (provider === 'openai') {
+    return formatForOpenAI(alternated);
+  } else if (provider.startsWith('groq')) {
+    return formatForGroq(alternated);
+  } else {
+    throw new Error(`Unknown provider: ${provider}`);
   }
 }
 

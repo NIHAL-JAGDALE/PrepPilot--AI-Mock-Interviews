@@ -33,12 +33,17 @@ import { generateSystemPrompt } from '../prompts/systemPrompt.js';
 //   This is handled in routes/sessions.js (Step 4).
 // ──────────────────────────────────────────────────────────
 
-const PROVIDERS = ['claude', 'openai', 'groq'];
+const PROVIDERS = ['claude', 'openai', 'groq', 'groq1', 'groq2', 'groq3', 'groq4', 'groq5'];
 
 const providerModules = {
   claude,
   openai,
   groq,
+  groq1: groq,
+  groq2: groq,
+  groq3: groq,
+  groq4: groq,
+  groq5: groq,
 };
 
 /**
@@ -49,6 +54,11 @@ function isProviderConfigured(provider) {
     claude: process.env.ANTHROPIC_API_KEY,
     openai: process.env.OPENAI_API_KEY,
     groq: process.env.GROQ_API_KEY,
+    groq1: process.env.GROQ_API_KEY_1,
+    groq2: process.env.GROQ_API_KEY_2,
+    groq3: process.env.GROQ_API_KEY_3,
+    groq4: process.env.GROQ_API_KEY_4,
+    groq5: process.env.GROQ_API_KEY_5,
   };
   const key = keys[provider];
   if (!key) return false;
@@ -164,9 +174,14 @@ export async function routeMessage(sessionId, userMessage) {
   // to personalize questions in Round 2 (Technical) and Round 3 (HR).
   // Prepend a condensed resume reference to every AI call.
   if (resumeProvided && session.turn_count >= 1) {
+    const maxResumeLength = 2500;
+    const truncatedResume = session.resume_text.length > maxResumeLength 
+      ? session.resume_text.substring(0, maxResumeLength) + '\n... (Resume truncated for brevity)'
+      : session.resume_text;
+      
     const resumeContext = {
       role: 'user',
-      content: `[CANDIDATE RESUME — Use this to personalize questions]\n${session.resume_text}\n[END RESUME]`,
+      content: `[CANDIDATE RESUME — Use this to personalize questions]\n${truncatedResume}\n[END RESUME]`,
     };
     context.unshift(resumeContext);
   }
@@ -195,7 +210,8 @@ export async function routeMessage(sessionId, userMessage) {
       const providerModule = providerModules[currentProvider];
       const response = await providerModule.sendMessage(
         systemPrompt,
-        formattedMessages
+        formattedMessages,
+        { providerName: currentProvider }
       );
 
       // ── 6. Success! Save response to DB ──

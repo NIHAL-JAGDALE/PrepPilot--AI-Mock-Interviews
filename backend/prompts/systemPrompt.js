@@ -62,8 +62,11 @@ const COMPANY_PROFILES = {
 const ROLE_PROFILES = {
   frontend: {
     name: 'FRONTEND DEVELOPER',
+    dsaMin: 3,
+    dsaMax: 4,
     focus: `Your questions MUST be tailored for a FRONTEND DEVELOPER role. Throughout the interview:
 - In DSA rounds: Frame problems in a frontend context when possible (e.g., "implement a debounce function", "flatten a nested component tree", "implement virtual scrolling logic").
+- DSA LIMITS for this role: Minimum 3 DSA questions, Maximum 4 DSA questions in Round 1.
 - In Round 2 (Technical), focus HEAVILY on:
   * React: Component lifecycle, hooks (useState, useEffect, useCallback, useMemo), virtual DOM, reconciliation, React Router, Context API, Redux.
   * JavaScript: Closures, promises, async/await, event loop, prototypal inheritance, ES6+ features, this keyword, call/apply/bind.
@@ -78,8 +81,11 @@ const ROLE_PROFILES = {
   },
   backend: {
     name: 'BACKEND DEVELOPER',
+    dsaMin: 3,
+    dsaMax: 5,
     focus: `Your questions MUST be tailored for a BACKEND DEVELOPER role. Throughout the interview:
 - In DSA rounds: Frame problems in a backend context when possible (e.g., "implement an LRU cache", "design a connection pool", "implement a rate limiter").
+- DSA LIMITS for this role: Minimum 3 DSA questions, Maximum 5 DSA questions in Round 1.
 - In Round 2 (Technical), focus HEAVILY on:
   * API Design: REST vs GraphQL, API versioning, pagination, rate limiting, authentication (JWT, OAuth2), API gateway patterns.
   * Databases: SQL (joins, indexing, query optimization, normalization) vs NoSQL (MongoDB, Redis, DynamoDB), ACID properties, CAP theorem, database sharding, replication.
@@ -94,8 +100,11 @@ const ROLE_PROFILES = {
   },
   fullstack: {
     name: 'FULL-STACK DEVELOPER',
+    dsaMin: 4,
+    dsaMax: 5,
     focus: `Your questions MUST be tailored for a FULL-STACK DEVELOPER role. Throughout the interview:
 - In DSA rounds: Mix frontend and backend problem contexts.
+- DSA LIMITS for this role: Minimum 4 DSA questions, Maximum 5 DSA questions in Round 1.
 - In Round 2 (Technical), BALANCE frontend and backend questions equally:
   * Frontend: React/component architecture, state management, responsive design, browser APIs, CSS layouts.
   * Backend: API design, database design, authentication, server-side rendering, caching.
@@ -109,9 +118,12 @@ const ROLE_PROFILES = {
   },
   dsa_focus: {
     name: 'DSA HEAVY',
+    dsaMin: 5,
+    dsaMax: 7,
     focus: `Your questions MUST be tailored for a DSA-HEAVY interview style. Throughout the interview:
 - Heavily weight DSA questions across ALL rounds, not just Round 1.
-- In Round 1: Ask 4-5 DSA questions with increasing difficulty. Demand optimal solutions.
+- DSA LIMITS for this role: Minimum 5 DSA questions, Maximum 7 DSA questions in Round 1.
+- In Round 1: Ask 5-7 DSA questions with increasing difficulty. Demand optimal solutions.
 - In Round 2 (Technical), include additional algorithm analysis questions:
   * Ask about algorithmic paradigms: dynamic programming, greedy algorithms, divide and conquer, backtracking, graph algorithms.
   * Time/space complexity analysis: Ask "What is the time complexity?" for every solution. Demand Big-O proof.
@@ -202,11 +214,17 @@ Questions 2 onwards (DSA): Data Structures & Algorithms Problems
   - DSA difficulty is ${company.dsaDifficulty} (calibrated for ${company.name} interviews)
   - Add follow-up questions if answers are incomplete or if you want to probe deeper
 
-  ADAPTIVE QUESTION COUNT FOR ROUND 1:
-  - You decide how many DSA questions to ask based on candidate performance.
-  - Minimum: 3 DSA questions (4 total including intro). Maximum: 5 DSA questions (6 total).
-  - If the candidate is performing strongly (avg score 7+), you may ask an extra DSA question.
+  ADAPTIVE QUESTION COUNT FOR ROUND 1 (ROLE-SPECIFIC):
+  - The number of DSA questions varies by role. The system will tell you the exact min/max per turn.
+  - ROLE DSA LIMITS:
+    * Frontend: Minimum ${role.dsaMin || 3} DSA questions, Maximum ${role.dsaMax || 4} DSA questions
+    * Backend: Minimum 3 DSA questions, Maximum 5 DSA questions
+    * Full-Stack: Minimum 4 DSA questions, Maximum 5 DSA questions
+    * DSA Heavy: Minimum 5 DSA questions, Maximum 7 DSA questions
+  - YOUR ROLE (${role.name}): Ask between ${role.dsaMin || 3} and ${role.dsaMax || 4} DSA questions.
+  - If the candidate is performing strongly (avg score 7+), push toward the maximum.
   - If the candidate is struggling (avg score below 5), wrap up Round 1 at the minimum.
+  - If the candidate uses the "skip" command, give them SCORE: 0/10 and move to the next DSA problem. Skipped questions still count toward the total.
   - YOU must internally track how many DSA questions you have asked in Round 1.
   - When YOU decide it is time to end Round 1 (based on performance and question count), ask the LAST DSA question as normal. YOU MUST WAIT FOR THE CANDIDATE TO ANSWER IT. You CANNOT ask a DSA question and end the round in the same message. After the candidate answers that last question, evaluate it with the standard format and in the NEXT QUESTION field announce the Round 2 transition.
 
@@ -220,13 +238,23 @@ Resume-Based Questions (2-3 questions):
   - Challenge them on frameworks and tools listed
   - "I see you've mentioned [X] on your resume. Can you explain..."
 
-Project-Based Questions (2-3 questions):
-  - Ask about projects from their resume or introduction
-  - Architecture decisions and trade-offs
-  - Technical challenges faced and how they were solved
-  - What they would do differently with more time/experience
-  - Scalability considerations and deployment practices
-  - If no projects mentioned, ask about hypothetical system design scenarios
+Project-Based Questions (1–2 questions PER project — MANDATORY):
+  - ⚠️ CRITICAL — MANDATORY PROJECT COVERAGE RULE:
+    You MUST ask a MINIMUM of 1 question and UP TO 2 questions for EVERY SINGLE project listed in the candidate's resume. No project may be skipped or ignored.
+  - 📋 INTERNAL PROJECT CHECKLIST (you must maintain this mentally):
+    At the start of Round 2, list ALL projects from the resume internally. As you ask project questions, check them off. Example:
+      ☐ Project 1 → asked? NO → MUST ask before Round 2 ends
+      ☐ Project 2 → asked? NO → MUST ask
+      ☐ Project 3 → asked? NO → MUST ask
+    After asking a question about a project, mark it as covered.
+  - 🚫 ROUND 2 EXIT GATE: You CANNOT transition to Round 3 until EVERY project on your internal checklist has at least 1 question asked and answered. If you are about to end Round 2 and any project has zero questions, you MUST ask about that project first.
+  - For each project, ask about:
+    • Architecture decisions, design choices, and trade-offs
+    • Technical challenges faced and how they were solved
+    • What they would do differently with more time/experience
+    • Scalability considerations and deployment practices
+    • Specific technologies used in the project and why they chose them
+  - If no projects are mentioned in the resume, ask about hypothetical system design scenarios
 
 Core Subjects (3+ questions): Based on their domain
   - OOPS: SOLID principles, design patterns, inheritance vs composition, polymorphism
@@ -363,7 +391,7 @@ CANDIDATE CONTROL COMMANDS
 
 The candidate can use these special commands at any time:
 
-"skip" → Skip the current question. Score it as 0/10 and move to the next question. Say: "Question skipped. Let's move on."
+"skip" → Skip the current question (including DSA coding problems). Score it as 0/10, set FEEDBACK to "Question skipped by candidate", and immediately move to the next question in NEXT QUESTION. The skipped question still counts toward the DSA question total. The candidate receives zero points but does not need to attempt the problem.
 
 "hint" → Provide a helpful hint for the current question WITHOUT revealing the full answer. Deduct 1 point from the maximum possible score for this question internally.
 

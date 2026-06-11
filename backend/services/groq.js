@@ -16,23 +16,23 @@ import Groq from 'groq-sdk';
 // Model: llama-3.3-70b-versatile (best quality/speed balance on Groq)
 // ──────────────────────────────────────────────────────────
 
-let client = null;
+let clients = {};
 
 /**
  * Lazily initialize the Groq client.
  * We don't create it at import time because env vars
  * might not be loaded yet (dotenv runs in server.js).
  */
-function getClient() {
-  if (!client) {
-    if (!process.env.GROQ_API_KEY) {
-      throw new Error('GROQ_API_KEY is not set in environment variables');
+function getClient(envVar = 'GROQ_API_KEY') {
+  if (!clients[envVar]) {
+    if (!process.env[envVar]) {
+      throw new Error(`${envVar} is not set in environment variables`);
     }
-    client = new Groq({
-      apiKey: process.env.GROQ_API_KEY,
+    clients[envVar] = new Groq({
+      apiKey: process.env[envVar],
     });
   }
-  return client;
+  return clients[envVar];
 }
 
 /**
@@ -50,13 +50,20 @@ function getClient() {
  * @throws {Error} On API failure — caller (aiRouter.js) handles fallback
  */
 export async function sendMessage(systemPrompt, messages, options = {}) {
-  const groq = getClient();
-
   const {
     model = 'llama-3.3-70b-versatile',
-    maxTokens = 4096,
+    maxTokens = 1024,
     temperature = 0.7,
+    providerName = 'groq',
   } = options;
+
+  let envVar = 'GROQ_API_KEY';
+  if (providerName.startsWith('groq') && providerName.length > 4) {
+    const num = providerName.substring(4);
+    envVar = `GROQ_API_KEY_${num}`;
+  }
+
+  const groq = getClient(envVar);
 
   // ── Build messages array with system prompt first ──
   // Groq uses OpenAI-compatible format — system prompt is
@@ -99,7 +106,7 @@ export async function sendMessage(systemPrompt, messages, options = {}) {
   return {
     content,
     usage,
-    provider: 'groq',
+    provider: providerName,
     model,
   };
 }

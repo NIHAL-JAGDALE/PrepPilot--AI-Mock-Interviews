@@ -27,8 +27,8 @@ const LIGHT_COLORS = {
   blueDim: '#EFF6FF',
   red: '#EF4444',
   redDim: '#FEF2F2',
-  textPrim: '#1A2B4A',
-  textSec: '#6B7A99',
+  textPrim: '#1A3A1D',
+  textSec: '#6B8A6E',
   textDim: '#9CA3AF',
   medium: '#F59E0B',
 };

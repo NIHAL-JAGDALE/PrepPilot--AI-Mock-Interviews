@@ -2,7 +2,7 @@ import express from 'express';
 import auth from '../middleware/auth.js';
 import pool from '../db/index.js';
 import { routeMessage, getFirstQuestion } from '../services/aiRouter.js';
-import { getRandomProblem, getFallbackProblem, getDifficulty } from '../services/leetcode.js';
+import { getRandomProblem, getFallbackProblem, getDifficulty, fetchProblemBySlug } from '../services/leetcode.js';
 import { parseAndSaveReport } from '../services/reportParser.js';
 import multer from 'multer';
 import { createRequire } from 'module';
@@ -283,7 +283,7 @@ router.get('/:id', async (req, res) => {
 router.post('/:id/message', async (req, res) => {
   try {
     const { id } = req.params;
-    const { content } = req.body;
+    const { content, code_submission } = req.body;
 
     if (!content || content.trim().length === 0) {
       return res.status(400).json({ error: 'Message content is required.' });
@@ -318,15 +318,23 @@ router.post('/:id/message', async (req, res) => {
 
     // ── DSA Problem Management ──
     // Strategy: We pre-fetch the next potential DSA problem BEFORE calling the AI.
-    // If the AI is on a DSA question (or transitioning to one), we instruct it to use
-    // the pre-fetched problem IF it decides to advance the question.
-    // This keeps the AI generated text and the UI in perfect sync.
+    // We inject STRICT instructions with the exact problem title AND slug.
+    // After the AI responds, we CROSS-VERIFY that the AI actually mentioned the
+    // injected problem. If the AI went rogue, we detect which problem it actually
+    // asked about and sync the panel to that problem instead.
     const currentRound = session.current_round || 1;
     const upcomingTurn = session.turn_count + 1;
 
-    // Detect if we have hit the DSA limit based on role.
-    const dsaLimits = { dsa_focus: 5, backend: 4, fullstack: 4, frontend: 3 };
-    const dsaQuestionLimit = dsaLimits[session.role_type] || 3;
+    // Detect if we have hit the DSA limit based on role (min/max).
+    const dsaLimitsConfig = {
+      frontend:  { min: 3, max: 4 },
+      backend:   { min: 3, max: 5 },
+      fullstack: { min: 4, max: 5 },
+      dsa_focus: { min: 5, max: 7 },
+    };
+    const dsaLimits = dsaLimitsConfig[session.role_type] || { min: 3, max: 4 };
+    const dsaMinLimit = dsaLimits.min;
+    const dsaMaxLimit = dsaLimits.max;
     let dsaQuestionsAsked = 0;
     
     // 1. Get the ACTIVE (existing) DSA problem if one exists
@@ -339,10 +347,31 @@ router.post('/:id/message', async (req, res) => {
       dsaQuestionsAsked = usedResult.rows.length;
       if (upcomingTurn >= 2 && usedResult.rows.length > 0) {
         existingDsaProblem = usedResult.rows[0];
+        
+        if (code_submission) {
+          try {
+            await pool.query(
+              `UPDATE dsa_problems 
+               SET user_code = $1, language = $2, jdoodle_result = $3, passed = $4, runtime_ms = $5 
+               WHERE id = $6`,
+              [
+                code_submission.code, 
+                code_submission.language, 
+                code_submission.result?.status || 'Unknown', 
+                code_submission.result?.passed || false, 
+                (code_submission.result?.time || 0) * 1000, 
+                existingDsaProblem.id
+              ]
+            );
+          } catch (err) {
+            console.error('Failed to update existing DSA problem with code submission:', err.message);
+          }
+        }
       }
     }
     
-    const round1Complete = dsaQuestionsAsked >= dsaQuestionLimit;
+    const round1Complete = dsaQuestionsAsked >= dsaMaxLimit;
+    const dsaMinReached = dsaQuestionsAsked >= dsaMinLimit;
 
     // 2. Pre-fetch the UPCOMING problem (in case the AI advances)
     let upcomingDsaProblem = null;
@@ -366,37 +395,121 @@ router.post('/:id/message', async (req, res) => {
     // Inject control command context
     if (command) {
       const commandInstructions = {
-        skip: '[SYSTEM: The candidate has used the "skip" command. You MUST output your evaluation in the EXACT strict format (SCORE: 0/10, FEEDBACK: "Question skipped", etc.). In the NEXT QUESTION field, say "Question skipped. Let\'s move on." followed by the next question.]',
+        skip: `[SYSTEM: The candidate has used the "skip" command to skip the current DSA question. You MUST: 1) Output SCORE: 0/10 in the evaluation. 2) FEEDBACK: "Question skipped by candidate." 3) In the NEXT QUESTION field, move to the next DSA problem. The candidate gets 0 points for this question but it still counts toward the DSA question count (${dsaQuestionsAsked + 1} asked so far, min: ${dsaMinLimit}, max: ${dsaMaxLimit}).]`,
         hint: '[SYSTEM: The candidate has requested a "hint". Provide a helpful hint WITHOUT revealing the full answer. Internally deduct 1 point from the max possible score for this question.]',
-        next_round: '[SYSTEM: The candidate has requested to move to the "next round". If the minimum question count for the current round has been met, transition to the next round with a proper announcement. If not met, inform them how many more questions they need to answer.]',
+        next_round: `[SYSTEM: The candidate has requested to move to the "next round". The minimum DSA question count for Round 1 is ${dsaMinLimit}. Questions asked so far: ${dsaQuestionsAsked}. If ${dsaQuestionsAsked} >= ${dsaMinLimit}, transition to Round 2 with a proper announcement. If not, inform them they need ${dsaMinLimit - dsaQuestionsAsked} more DSA questions before moving on.]`,
         end_interview: '[SYSTEM: The candidate has requested to "end interview". Generate the INTERVIEW_COMPLETE report immediately based on all questions answered so far. Mark any unanswered rounds as "Not Evaluated".]',
         skip_resume: '[SYSTEM: The candidate has chosen to skip providing their resume. Proceed directly to Round 1 with general questions. Do not ask for the resume again.]',
       };
       aiContent += `\n\n${commandInstructions[command]}`;
     }
 
-    // 3. Inject DSA instructions into the prompt
+    // 3. Inject DSA instructions into the prompt with explicit slug tracking
     if (currentRound === 1) {
       if (existingDsaProblem) {
-        aiContent += `\n\n[SYSTEM: The current DSA problem is "${existingDsaProblem.title}" (${existingDsaProblem.difficulty}).`;
-        if (!command) { // Only add scoring rules if not a command
-           aiContent += ` If the candidate has provided a genuine attempt at solving this problem, evaluate it. If they have NOT attempted the problem, do NOT score them — instead prompt them to attempt it.`;
+        aiContent += `\n\n[SYSTEM DSA CONTEXT — DO NOT IGNORE]`;
+        aiContent += `\nCURRENT_DSA_PROBLEM: "${existingDsaProblem.title}" (${existingDsaProblem.difficulty})`;
+        aiContent += `\nCURRENT_DSA_SLUG: ${existingDsaProblem.slug}`;
+        if (!command) {
+           aiContent += `\nIf the candidate has provided a genuine attempt at solving "${existingDsaProblem.title}", evaluate it with SCORE. If they have NOT attempted the problem, do NOT score them — instead prompt them to attempt it.`;
         }
         if (upcomingDsaProblem) {
-            aiContent += `\nCRITICAL: If you evaluate the current problem (or it was skipped) and move to a new DSA question, your NEXT QUESTION MUST be the coding problem: "${upcomingDsaProblem.title}" (${upcomingDsaProblem.difficulty}). Do NOT invent a different problem. Reference this exact title. You CANNOT transition to Round 2 in this response; you MUST wait for the candidate to answer this new DSA question first.]`;
+            aiContent += `\n\nDSA_PROGRESS: ${dsaQuestionsAsked} asked so far (min: ${dsaMinLimit}, max: ${dsaMaxLimit})`;
+            aiContent += `\n\n⚠️ MANDATORY NEXT PROBLEM (if you advance):`;
+            aiContent += `\nNEXT_DSA_PROBLEM: "${upcomingDsaProblem.title}"`;
+            aiContent += `\nNEXT_DSA_SLUG: ${upcomingDsaProblem.slug}`;
+            aiContent += `\nNEXT_DSA_DIFFICULTY: ${upcomingDsaProblem.difficulty}`;
+            aiContent += `\nIf you evaluate the current problem and move to a new DSA question, your NEXT QUESTION text MUST contain the EXACT title "${upcomingDsaProblem.title}". Do NOT invent a different problem. Do NOT substitute with any other problem. The coding panel will show "${upcomingDsaProblem.title}" — your question MUST match it exactly.`;
+            if (dsaMinReached) {
+              aiContent += `\nNOTE: Minimum DSA count (${dsaMinLimit}) has been reached. You MAY transition to Round 2 after evaluating if the candidate's performance warrants it, OR continue with more DSA up to the max of ${dsaMaxLimit}.`;
+            } else {
+              aiContent += `\nYou CANNOT transition to Round 2 yet — minimum ${dsaMinLimit} DSA questions required, only ${dsaQuestionsAsked} asked so far.`;
+            }
+            aiContent += `\nYou MUST wait for the candidate to answer "${upcomingDsaProblem.title}" before any round transition.`;
+            aiContent += `\n[END DSA CONTEXT]`;
         } else if (round1Complete) {
-            aiContent += `\nCRITICAL: You have reached the MAXIMUM limit of ${dsaQuestionLimit} DSA questions for this candidate based on their role (${session.role_type}). After evaluating the current problem, YOU MUST announce Round 1 complete and transition to Round 2 immediately. DO NOT ASK ANY MORE DSA QUESTIONS.]`;
+            aiContent += `\n\n⚠️ DSA MAX LIMIT REACHED: ${dsaMaxLimit}/${dsaMaxLimit} DSA questions asked for role "${session.role_type}".`;
+            aiContent += `\nAfter evaluating the current problem, YOU MUST announce Round 1 complete and transition to Round 2 immediately. DO NOT ASK ANY MORE DSA QUESTIONS.`;
+            aiContent += `\n[END DSA CONTEXT]`;
         } else {
-            aiContent += `]`;
+            aiContent += `\n[END DSA CONTEXT]`;
         }
       } else if (upcomingTurn === 2 && upcomingDsaProblem) {
         // First DSA problem (turn 2)
-        aiContent += `\n\n[SYSTEM: This is the first DSA problem turn. Ask the candidate to solve this specific problem: "${upcomingDsaProblem.title}" (${upcomingDsaProblem.difficulty}). Do NOT invent a different problem. Reference this exact title.]`;
+        aiContent += `\n\n[SYSTEM DSA CONTEXT — DO NOT IGNORE]`;
+        aiContent += `\nFIRST_DSA_PROBLEM: "${upcomingDsaProblem.title}"`;
+        aiContent += `\nFIRST_DSA_SLUG: ${upcomingDsaProblem.slug}`;
+        aiContent += `\nFIRST_DSA_DIFFICULTY: ${upcomingDsaProblem.difficulty}`;
+        aiContent += `\nThis is the first DSA problem turn. You MUST ask the candidate to solve this EXACT problem: "${upcomingDsaProblem.title}" (${upcomingDsaProblem.difficulty}).`;
+        aiContent += `\nState the problem title "${upcomingDsaProblem.title}" explicitly in your question. Do NOT invent a different problem. The coding panel will display "${upcomingDsaProblem.title}" — your question text MUST match.`;
+        aiContent += `\n[END DSA CONTEXT]`;
       }
     }
 
     // ── Route message through AI ──
     const aiResponse = await routeMessage(id, aiContent);
+
+    // ── Cross-verify the AI response with the pre-fetched problem ──
+    // Helper: Check if AI response mentions a specific problem title (case-insensitive)
+    const aiMentionsProblem = (title) => {
+      if (!title) return false;
+      const normalizedReply = aiResponse.reply.toLowerCase();
+      const normalizedTitle = title.toLowerCase();
+      return normalizedReply.includes(normalizedTitle);
+    };
+
+    // All known problem slugs across all difficulty pools for fallback detection
+    const ALL_KNOWN_PROBLEMS = {
+      // Easy
+      'two-sum': 'Two Sum',
+      'reverse-string': 'Reverse String',
+      'palindrome-number': 'Palindrome Number',
+      'valid-parentheses': 'Valid Parentheses',
+      'fizz-buzz': 'Fizz Buzz',
+      'merge-two-sorted-lists': 'Merge Two Sorted Lists',
+      'best-time-to-buy-and-sell-stock': 'Best Time to Buy and Sell Stock',
+      'valid-anagram': 'Valid Anagram',
+      'maximum-subarray': 'Maximum Subarray',
+      'climbing-stairs': 'Climbing Stairs',
+      // Medium
+      'longest-substring-without-repeating-characters': 'Longest Substring Without Repeating Characters',
+      'container-with-most-water': 'Container With Most Water',
+      '3sum': '3Sum',
+      'longest-palindromic-substring': 'Longest Palindromic Substring',
+      'group-anagrams': 'Group Anagrams',
+      'product-of-array-except-self': 'Product of Array Except Self',
+      'rotate-image': 'Rotate Image',
+      'search-in-rotated-sorted-array': 'Search in Rotated Sorted Array',
+      'coin-change': 'Coin Change',
+      'letter-combinations-of-a-phone-number': 'Letter Combinations of a Phone Number',
+      // Hard
+      'median-of-two-sorted-arrays': 'Median of Two Sorted Arrays',
+      'trapping-rain-water': 'Trapping Rain Water',
+      'n-queens': 'N-Queens',
+      'merge-k-sorted-lists': 'Merge k Sorted Lists',
+      'word-ladder': 'Word Ladder',
+      'minimum-window-substring': 'Minimum Window Substring',
+      'largest-rectangle-in-histogram': 'Largest Rectangle in Histogram',
+      'serialize-and-deserialize-binary-tree': 'Serialize and Deserialize Binary Tree',
+      'sliding-window-maximum': 'Sliding Window Maximum',
+      'edit-distance': 'Edit Distance',
+    };
+
+    // Try to find which problem the AI is actually talking about in the NEXT QUESTION section
+    // Excludes the current problem to avoid false matches
+    const findMentionedProblem = (excludeSlug) => {
+      // First, try to find problem mentioned specifically in the NEXT QUESTION section
+      const nextQuestionMatch = aiResponse.reply.match(/NEXT QUESTION:[\s\S]*/i);
+      const searchText = nextQuestionMatch ? nextQuestionMatch[0] : aiResponse.reply;
+      
+      for (const [slug, title] of Object.entries(ALL_KNOWN_PROBLEMS)) {
+        if (slug === excludeSlug) continue; // Skip the current problem
+        if (searchText.toLowerCase().includes(title.toLowerCase())) {
+          return { slug, title };
+        }
+      }
+      return null;
+    };
 
     // ── Determine which DSA problem is now active ──
     let dsaProblemToSave = null;
@@ -410,17 +523,76 @@ router.post('/:id/message', async (req, res) => {
       
       if (!isTransitioningOut) {
         if (round1Complete && aiScoredThisResponse && aiAskedNextQuestion) {
-           // Fallback: If AI fails to output the transition announcement even after hitting the cap, force it out.
+           // DSA limit reached & AI still asked another Q — force round transition
            detectedRound = 2;
            finalDsaProblem = null;
         } else if ((aiScoredThisResponse && aiAskedNextQuestion) || command === 'skip') {
-           dsaProblemToSave = upcomingDsaProblem;
+           // AI scored the current problem and asked the next one.
+           // CROSS-VERIFY: Does the AI response actually mention the pre-fetched problem?
+           if (upcomingDsaProblem && aiMentionsProblem(upcomingDsaProblem.title)) {
+             // ✅ AI obediently used the pre-fetched problem
+             dsaProblemToSave = upcomingDsaProblem;
+             console.log(`✅ AI correctly mentioned pre-fetched problem: "${upcomingDsaProblem.title}"`);
+           } else if (upcomingDsaProblem) {
+             // ⚠️ AI went rogue — mentioned a different problem
+             const mentionedProblem = findMentionedProblem(existingDsaProblem?.slug);
+             if (mentionedProblem) {
+               // AI mentioned a known problem that's different from the current one
+               // Fetch/use that problem instead to keep panel in sync with AI
+               console.warn(`⚠️ AI ignored pre-fetched "${upcomingDsaProblem.title}" and asked about "${mentionedProblem.title}" instead. Syncing panel to AI's choice.`);
+               try {
+                 const actualProblem = await fetchProblemBySlug(mentionedProblem.slug);
+                 dsaProblemToSave = {
+                   slug: mentionedProblem.slug,
+                   title: mentionedProblem.title,
+                   difficulty: actualProblem.difficulty || upcomingDsaProblem.difficulty,
+                 };
+               } catch (fetchErr) {
+                 // Fallback: use the basic info we already have
+                 dsaProblemToSave = {
+                   slug: mentionedProblem.slug,
+                   title: mentionedProblem.title,
+                   difficulty: upcomingDsaProblem.difficulty,
+                 };
+               }
+             } else {
+               // Can't identify what the AI asked — still save the pre-fetched to avoid null panel
+               console.warn(`⚠️ Could not identify AI's chosen problem. Using pre-fetched "${upcomingDsaProblem.title}" as fallback.`);
+               dsaProblemToSave = upcomingDsaProblem;
+             }
+           }
         } else if (!existingDsaProblem && upcomingTurn === 2) {
-           // It's turn 2, presenting the first DSA problem. Lock it in even if AI dropped the NEXT QUESTION label by mistake.
-           dsaProblemToSave = upcomingDsaProblem;
+           // Turn 2: presenting the first DSA problem.
+           // Cross-verify even for the first problem
+           if (upcomingDsaProblem && aiMentionsProblem(upcomingDsaProblem.title)) {
+             dsaProblemToSave = upcomingDsaProblem;
+             console.log(`✅ AI correctly presented first DSA problem: "${upcomingDsaProblem.title}"`);
+           } else if (upcomingDsaProblem) {
+             // AI might have mentioned a different problem
+             const mentionedProblem = findMentionedProblem(null);
+             if (mentionedProblem) {
+               console.warn(`⚠️ AI chose "${mentionedProblem.title}" instead of pre-fetched "${upcomingDsaProblem.title}" for first DSA. Syncing.`);
+               dsaProblemToSave = {
+                 slug: mentionedProblem.slug,
+                 title: mentionedProblem.title,
+                 difficulty: upcomingDsaProblem.difficulty,
+               };
+             } else {
+               // Fallback to pre-fetched
+               dsaProblemToSave = upcomingDsaProblem;
+             }
+           }
         } else {
            // AI did not advance the question (e.g. clarification, hint, invalid answer)
-           finalDsaProblem = existingDsaProblem;
+           // But also check: did the AI mention a NEW problem without using SCORE/NEXT QUESTION format?
+           // This handles cases where some AI providers format differently
+           if (upcomingDsaProblem && aiMentionsProblem(upcomingDsaProblem.title) && !aiMentionsProblem(existingDsaProblem?.title || '')) {
+             // AI mentioned the upcoming problem but NOT the existing one — it advanced without proper format
+             console.warn(`⚠️ AI mentioned upcoming problem "${upcomingDsaProblem.title}" without proper SCORE/NEXT QUESTION format. Saving anyway.`);
+             dsaProblemToSave = upcomingDsaProblem;
+           } else {
+             finalDsaProblem = existingDsaProblem;
+           }
         }
       }
     }

@@ -18,7 +18,7 @@ export default function EvalCard({ score, feedback, weakAreas, modelAnswer }) {
           </div>
         </div>
         <div>
-          <div style={{ fontFamily: 'Sora, sans-serif', fontSize: 13, fontWeight: 800, color: '#1A2B4A' }}>Score: {pct / 10}/10</div>
+          <div style={{ fontFamily: 'Sora, sans-serif', fontSize: 13, fontWeight: 800, color: '#1A3A1D' }}>Score: {pct / 10}/10</div>
           <div style={{ fontSize: 10, color: '#9CA3AF', marginTop: 2 }}>
             {pct >= 80 ? 'Strong Answer ✓' : pct >= 60 ? 'Good — room to grow' : 'Needs improvement'}
           </div>
@@ -28,19 +28,19 @@ export default function EvalCard({ score, feedback, weakAreas, modelAnswer }) {
       {feedback && (
         <>
           <div style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: 0.5, fontWeight: 700, marginBottom: 3, color: '#16A34A' }}>Feedback</div>
-          <div style={{ fontSize: 12, color: '#6B7A99', lineHeight: 1.6, marginBottom: 8 }}>{feedback}</div>
+          <div style={{ fontSize: 12, color: '#6B8A6E', lineHeight: 1.6, marginBottom: 8 }}>{feedback}</div>
         </>
       )}
       {weakAreas && (
         <>
           <div style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: 0.5, fontWeight: 700, marginBottom: 3, color: '#D97706' }}>Weak Areas</div>
-          <div style={{ fontSize: 12, color: '#6B7A99', lineHeight: 1.6 }}>{weakAreas}</div>
+          <div style={{ fontSize: 12, color: '#6B8A6E', lineHeight: 1.6 }}>{weakAreas}</div>
         </>
       )}
       {modelAnswer && (
         <details style={{ marginTop: 8, cursor: 'pointer' }}>
           <summary style={{ fontSize: 11, fontWeight: 600, color: '#3B82F6', userSelect: 'none' }}>Show Model Answer ▾</summary>
-          <div style={{ fontSize: 12, color: '#6B7A99', lineHeight: 1.6, marginTop: 6, paddingLeft: 8, borderLeft: '2px solid rgba(59,130,246,0.3)' }}>
+          <div style={{ fontSize: 12, color: '#6B8A6E', lineHeight: 1.6, marginTop: 6, paddingLeft: 8, borderLeft: '2px solid rgba(59,130,246,0.3)' }}>
             {modelAnswer}
           </div>
         </details>

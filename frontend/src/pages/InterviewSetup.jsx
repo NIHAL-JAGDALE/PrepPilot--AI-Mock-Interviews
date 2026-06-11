@@ -46,10 +46,10 @@ export default function InterviewSetup() {
     if (!file) return;
     setIsUploading(true);
     setError('');
-    
+
     const formData = new FormData();
     formData.append('resume', file);
-    
+
     try {
       const { data } = await sessionAPI.extractResume(formData);
       setForm({ ...form, resume_text: data.text });
@@ -106,6 +106,7 @@ export default function InterviewSetup() {
           textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 6,
           fontFamily: 'Sora, sans-serif', fontWeight: 800, fontSize: 22, color: 'var(--text)'
         }}>
+          <img src="/Images/photos/light_theme_logo.png" alt="PrepPilot Logo" style={{ height: 40 }} />
           PrepPilot<sup style={{ fontSize: 10, background: 'var(--green)', color: '#fff', padding: '2px 5px', borderRadius: 4, fontWeight: 700, verticalAlign: 'super', marginLeft: 2 }}>AI</sup>
         </Link>
         <span style={{ color: 'var(--gray2)', fontSize: 20 }}>›</span>
@@ -231,8 +232,8 @@ export default function InterviewSetup() {
                 <span style={{ width: 24, height: 2, background: 'var(--green)', display: 'inline-block', borderRadius: 2 }} />
                 Your Resume (Required)
               </div>
-              
-              <div 
+
+              <div
                 onDragEnter={handleDrag}
                 onDragOver={handleDrag}
                 onDragLeave={handleDrag}
@@ -249,13 +250,13 @@ export default function InterviewSetup() {
                   position: 'relative'
                 }}
               >
-                <input 
-                  type="file" 
-                  accept=".pdf,.doc,.docx,.txt" 
+                <input
+                  type="file"
+                  accept=".pdf,.doc,.docx,.txt"
                   onChange={(e) => e.target.files && handleFileUpload(e.target.files[0])}
                   style={{ opacity: 0, position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', cursor: 'pointer' }}
                 />
-                
+
                 {isUploading ? (
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
                     <div style={{ width: 30, height: 30, border: '3px solid rgba(29,185,84,0.2)', borderTopColor: 'var(--green)', borderRadius: '50%', animation: 'spin .7s linear infinite' }} />

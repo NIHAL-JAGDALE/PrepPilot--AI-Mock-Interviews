@@ -22,7 +22,7 @@ function TypingIndicator() {
       <div style={{ width: 32, height: 32, borderRadius: 9, background: '#1DB954', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, flexShrink: 0, marginTop: 2 }}>🎯</div>
       <div style={{ background: '#fff', border: '1px solid #E8ECF2', borderRadius: '4px 18px 18px 18px', padding: '14px 18px', display: 'flex', gap: 4, alignItems: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
         {[0, 180, 360].map(delay => (
-           <div key={delay} style={{ width: 7, height: 7, borderRadius: '50%', background: '#CBD5E1', animation: `float1 1.2s ${delay}ms ease-in-out infinite` }} />
+          <div key={delay} style={{ width: 7, height: 7, borderRadius: '50%', background: '#CBD5E1', animation: `float1 1.2s ${delay}ms ease-in-out infinite` }} />
         ))}
       </div>
     </div>
@@ -48,7 +48,7 @@ function CameraFeed() {
       .catch((err) => {
         setError(err.message);
       });
-      
+
     return () => {
       if (activeStream) {
         activeStream.getTracks().forEach(track => track.stop());
@@ -75,10 +75,10 @@ function CameraFeed() {
     if (isDragging) {
       let newX = e.clientX - offset.current.x;
       let newY = e.clientY - offset.current.y;
-      
+
       const width = 186; // 180 width + 6 border
       const height = 141; // 135 height + 6 border
-      
+
       newX = Math.max(0, Math.min(newX, window.innerWidth - width));
       newY = Math.max(0, Math.min(newY, window.innerHeight - height));
 
@@ -207,6 +207,9 @@ export default function Interview() {
 
   // ── Last compiler run result (auto-appended to next message) ──
   const [lastRunResult, setLastRunResult] = useState(null);
+
+  // ── End interview confirmation modal ──
+  const [showEndConfirm, setShowEndConfirm] = useState(false);
 
   // ── Live stats (updated per response) ──
   const [currentProvider, setCurrentProvider] = useState('claude');
@@ -346,14 +349,16 @@ export default function Interview() {
 
     // Append compiler result to message if available
     let finalContent = trimmed;
+    let codeSubmissionPayload = null;
     if (lastRunResult) {
       finalContent += `\n\n[Code Submission — ${lastRunResult.language}]\n\`\`\`\n${lastRunResult.code}\n\`\`\`\nResult: ${lastRunResult.result.status}${lastRunResult.result.stdout ? `\nOutput: ${lastRunResult.result.stdout}` : ''}`;
+      codeSubmissionPayload = lastRunResult;
       setLastRunResult(null);
     }
 
     setInput('');
     if (inputRef.current) {
-        inputRef.current.style.height = 'auto'; // reset height
+      inputRef.current.style.height = 'auto'; // reset height
     }
     setSending(true);
 
@@ -362,7 +367,7 @@ export default function Interview() {
     setMessages(prev => [...prev, userMsg]);
 
     try {
-      const { data } = await sessionAPI.sendMessage(id, finalContent);
+      const { data } = await sessionAPI.sendMessage(id, finalContent, codeSubmissionPayload);
 
       // Update live stats
       setCurrentProvider(data.provider || 'claude');
@@ -380,11 +385,16 @@ export default function Interview() {
       }
 
       // Track DSA problem for this turn
+      // Only update the active DSA problem when the backend explicitly sends one.
+      // If backend sends null BUT we're still in Round 1 with an existing problem,
+      // keep the current problem visible (don't flash the panel away).
       if (data.dsa_problem) {
         setActiveDsaProblem(data.dsa_problem);
-      } else {
+      } else if (data.current_round !== 1) {
+        // Only clear when leaving Round 1
         setActiveDsaProblem(null);
       }
+      // If data.dsa_problem is null AND we're still in Round 1, keep existing activeDsaProblem as-is
 
       // Add assistant reply to chat
       const assistantMsg = {
@@ -420,9 +430,9 @@ export default function Interview() {
     if (sending) return;
     setInput(cmd);
     setTimeout(() => {
-        const fakeEvent = { preventDefault: () => {} };
-        // We simulate the click by directly passing the command instead of relying on state
-        handleSendCommand(cmd);
+      const fakeEvent = { preventDefault: () => { } };
+      // We simulate the click by directly passing the command instead of relying on state
+      handleSendCommand(cmd);
     }, 10);
   };
 
@@ -456,7 +466,7 @@ export default function Interview() {
 
       if (data.dsa_problem) {
         setActiveDsaProblem(data.dsa_problem);
-      } else {
+      } else if (data.current_round !== 1) {
         setActiveDsaProblem(null);
       }
 
@@ -478,7 +488,7 @@ export default function Interview() {
     } catch (err) {
       setMessages(prev => [...prev, {
         role: 'assistant',
-        content: `⚠️ ${err.response?.data?.error || 'Failed.'}`,
+        content: `⚠️ ${err.response?.data?.error || 'Failed to send command. Please try again.'}`,
         provider: currentProvider,
       }]);
     } finally {
@@ -499,7 +509,7 @@ export default function Interview() {
       <div style={{ minHeight: '100vh', background: '#F5F7FA', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <div style={{ textAlign: 'center' }}>
           <div style={{ width: 48, height: 48, border: '4px solid rgba(29,185,84,0.2)', borderTopColor: '#1DB954', borderRadius: '50%', animation: 'spin .7s linear infinite', margin: '0 auto 16px' }} />
-          <p style={{ color: '#6B7A99', fontSize: 14 }}>Loading session...</p>
+          <p style={{ color: '#6B8A6E', fontSize: 14 }}>Loading session...</p>
         </div>
       </div>
     );
@@ -523,20 +533,20 @@ export default function Interview() {
   return (
     <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', overflow: 'hidden', background: '#F5F7FA', fontFamily: 'DM Sans, sans-serif' }}>
       {!isCompleted && <CameraFeed />}
-      
+
       {/* NAV */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 28px', background: '#fff', borderBottom: '1px solid #E8ECF2', flexShrink: 0 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontFamily: 'Sora, sans-serif', fontWeight: 800, fontSize: 15, color: '#1A2B4A' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontFamily: 'Sora, sans-serif', fontWeight: 800, fontSize: 15, color: '#1A3A1D' }}>
           <Link to="/dashboard" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 7, color: 'inherit' }}>
-            <div style={{ width: 28, height: 28, borderRadius: 8, background: '#1DB954', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14 }}>🎯</div>
+            <img src="/Images/photos/light_theme_logo.png" alt="PrepPilot Logo" style={{ height: 32 }} />
             PrepPilot<sup style={{ fontSize: 8, background: '#1DB954', color: '#fff', padding: '1px 4px', borderRadius: 3, fontWeight: 700 }}>AI</sup>
           </Link>
         </div>
-        
+
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
           <ProviderBadge provider={currentProvider} model={currentModel} />
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
-            <div style={{ fontSize: 11, color: '#6B7A99' }}>Turn {turnCount}</div>
+            <div style={{ fontSize: 11, color: '#6B8A6E' }}>Turn {turnCount}</div>
             <div style={{ display: 'flex', gap: 3 }}>
               {[...Array(3)].map((_, i) => (
                 <div key={i} style={{ width: 18, height: 3, borderRadius: 3, display: 'inline-block', background: i < (session?.current_round || 1) - 1 ? '#1DB954' : (i === (session?.current_round || 1) - 1 ? '#86EFAC' : '#E2E8F0') }} />
@@ -599,7 +609,7 @@ export default function Interview() {
             </div>
           )}
           <TokenStats cacheStatus={latestCacheStatus} />
-          <button onClick={() => navigate(`/report/${id}`)} style={{ padding: '7px 14px', borderRadius: 50, border: '1.5px solid #FCA5A5', background: '#FFF5F5', color: '#EF4444', fontSize: 11, fontWeight: 700, cursor: 'pointer', fontFamily: 'DM Sans, sans-serif', transition: 'all .2s' }}>End Interview</button>
+          <button onClick={() => setShowEndConfirm(true)} style={{ padding: '7px 14px', borderRadius: 50, border: '1.5px solid #FCA5A5', background: '#FFF5F5', color: '#EF4444', fontSize: 11, fontWeight: 700, cursor: 'pointer', fontFamily: 'DM Sans, sans-serif', transition: 'all .2s' }}>End Interview</button>
         </div>
       </div>
 
@@ -610,8 +620,8 @@ export default function Interview() {
             <span style={{ width: 6, height: 6, background: '#1DB954', borderRadius: '50%', display: 'inline-block', animation: 'pulse-dot 2s ease-in-out infinite' }}></span>
             <span>{ROUND_NAMES[session.current_round || 1] || "Interview"}</span>
           </div>
-          <div style={{ fontSize: 11, color: '#6B7A99' }}>
-            Session: <strong style={{ color: '#1A2B4A', textTransform: 'capitalize' }}>{session.company_type} · {session.role_type?.replace('_', ' ')}</strong> · <span style={{ color: '#16A34A', fontWeight: 600 }}>Active</span>
+          <div style={{ fontSize: 11, color: '#6B8A6E' }}>
+            Session: <strong style={{ color: '#1A3A1D', textTransform: 'capitalize' }}>{session.company_type} · {session.role_type?.replace('_', ' ')}</strong> · <span style={{ color: '#16A34A', fontWeight: 600 }}>Active</span>
           </div>
         </div>
       )}
@@ -624,15 +634,15 @@ export default function Interview() {
 
         {/* LEFT COLUMN: Chat Area + Input */}
         <div style={{ width: (isDSATurn && activeDsaProblem) ? `${chatWidth}%` : '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-          
+
           <div id="chat-area" style={{ flex: 1, overflowY: 'auto', padding: '20px 28px 12px' }}>
             {messages.length === 0 && !sending && (
               <div style={{ textAlign: 'center', padding: '64px 0' }}>
                 <div style={{ fontSize: 56, marginBottom: 16 }}>🎯</div>
-                <p style={{ color: '#6B7A99', fontSize: 15 }}>The interviewer is preparing your first question...</p>
+                <p style={{ color: '#6B8A6E', fontSize: 15 }}>The interviewer is preparing your first question...</p>
               </div>
             )}
-            
+
             {messages.map((msg, idx) => (
               <div key={idx}>
                 <ChatBubble
@@ -643,9 +653,9 @@ export default function Interview() {
                   isSpeaking={tts.isSpeaking}
                 />
                 {msg.role === 'assistant' && msg.isComplete && (
-                   <div style={{ background: '#F0FDF4', border: '1px solid #BBF7D0', borderRadius: 16, padding: 20, textAlign: 'center', margin: '0 auto 24px', maxWidth: '80%', animation: 'fadeIn .5s ease' }}>
+                  <div style={{ background: '#F0FDF4', border: '1px solid #BBF7D0', borderRadius: 16, padding: 20, textAlign: 'center', margin: '0 auto 24px', maxWidth: '80%', animation: 'fadeIn .5s ease' }}>
                     <p style={{ color: '#16A34A', fontWeight: 700, fontSize: 16, marginBottom: 6 }}>🎉 Interview Complete!</p>
-                    <p style={{ color: '#6B7A99', fontSize: 14 }}>Redirecting to your detailed report...</p>
+                    <p style={{ color: '#6B8A6E', fontSize: 14 }}>Redirecting to your detailed report...</p>
                   </div>
                 )}
               </div>
@@ -659,8 +669,8 @@ export default function Interview() {
             <div style={{ flexShrink: 0, padding: '12px 28px 16px', background: '#fff', borderTop: '1px solid #E8ECF2' }}>
               <div style={{ display: 'flex', gap: 10, alignItems: 'flex-end', maxWidth: 1200, margin: '0 auto' }}>
                 <div style={{ flex: 1, background: '#F8FAFC', border: '1.5px solid #E2E8F0', borderRadius: 14, padding: '12px 16px', display: 'flex', alignItems: 'flex-end', gap: 8, transition: 'border-color .25s' }}
-                     onFocus={e => e.currentTarget.style.borderColor = '#1DB954'}
-                     onBlur={e => e.currentTarget.style.borderColor = '#E2E8F0'}>
+                  onFocus={e => e.currentTarget.style.borderColor = '#1DB954'}
+                  onBlur={e => e.currentTarget.style.borderColor = '#E2E8F0'}>
                   <textarea
                     ref={inputRef}
                     value={input}
@@ -673,7 +683,7 @@ export default function Interview() {
                     disabled={sending}
                     placeholder={isDSATurn ? 'Describe your approach or solve in the editor right...' : 'Type your answer here… (Enter to send, Shift+Enter for new line)'}
                     rows={1}
-                    style={{ flex: 1, background: 'none', border: 'none', outline: 'none', color: '#1A2B4A', fontFamily: 'DM Sans, sans-serif', fontSize: 13.5, lineHeight: 1.6, resize: 'none', minHeight: 20, maxHeight: 90, overflowY: 'auto' }}
+                    style={{ flex: 1, background: 'none', border: 'none', outline: 'none', color: '#1A3A1D', fontFamily: 'DM Sans, sans-serif', fontSize: 13.5, lineHeight: 1.6, resize: 'none', minHeight: 20, maxHeight: 90, overflowY: 'auto' }}
                   />
                 </div>
 
@@ -703,9 +713,9 @@ export default function Interview() {
                 )}
 
                 <button
-                   onClick={handleSend}
-                   disabled={sending || !input.trim()}
-                   style={{ width: 42, height: 42, borderRadius: 12, border: 'none', background: '#1DB954', color: '#fff', fontSize: 16, fontWeight: 700, cursor: (sending || !input.trim()) ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'all .2s', opacity: (sending || !input.trim()) ? 0.4 : 1, boxShadow: (sending || !input.trim()) ? 'none' : '0 3px 10px rgba(29,185,84,0.25)' }}
+                  onClick={handleSend}
+                  disabled={sending || !input.trim()}
+                  style={{ width: 42, height: 42, borderRadius: 12, border: 'none', background: '#1DB954', color: '#fff', fontSize: 16, fontWeight: 700, cursor: (sending || !input.trim()) ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'all .2s', opacity: (sending || !input.trim()) ? 0.4 : 1, boxShadow: (sending || !input.trim()) ? 'none' : '0 3px 10px rgba(29,185,84,0.25)' }}
                 >
                   {sending ? '...' : '↑'}
                 </button>
@@ -755,13 +765,13 @@ export default function Interview() {
 
         {/* SPLITTER */}
         {isDSATurn && activeDsaProblem && (
-          <div 
+          <div
             onMouseDown={startMainResize}
             style={{ width: 6, background: '#E2E8F0', cursor: 'col-resize', transition: 'background .2s', zIndex: 10, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
             onMouseEnter={e => e.currentTarget.style.background = '#1DB954'}
             onMouseLeave={e => e.currentTarget.style.background = '#E2E8F0'}
           >
-             <div style={{ width: 2, height: 24, background: '#CBD5E1', borderRadius: 4 }} />
+            <div style={{ width: 2, height: 24, background: '#CBD5E1', borderRadius: 4 }} />
           </div>
         )}
 
@@ -775,7 +785,55 @@ export default function Interview() {
       </div>
 
       {/* STT Error Toast */}
-      <STTErrorToast message={stt.error} onDismiss={() => {}} />
+      <STTErrorToast message={stt.error} onDismiss={() => { }} />
+
+      {/* End Interview Confirmation Modal */}
+      {showEndConfirm && (
+        <div style={{
+          position: 'fixed', inset: 0, zIndex: 99999,
+          background: 'rgba(15, 23, 42, 0.55)', backdropFilter: 'blur(6px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          animation: 'fadeIn 0.25s ease',
+        }}>
+          <div style={{
+            background: '#fff', borderRadius: 20, padding: '36px 40px',
+            boxShadow: '0 24px 64px rgba(0,0,0,0.18)', maxWidth: 420, width: '90%',
+            textAlign: 'center', fontFamily: 'DM Sans, sans-serif',
+            animation: 'fadeIn 0.3s ease',
+          }}>
+            <div style={{ fontSize: 44, marginBottom: 12 }}>⚠️</div>
+            <h3 style={{ fontSize: 18, fontWeight: 800, color: '#1A3A1D', marginBottom: 8, fontFamily: 'Sora, sans-serif' }}>
+              End Interview?
+            </h3>
+            <p style={{ fontSize: 13.5, color: '#6B8A6E', lineHeight: 1.6, marginBottom: 28 }}>
+              Are you sure you want to quit the interview? Your progress so far will be saved, but unanswered rounds will be marked as "Not Evaluated" in your report.
+            </p>
+            <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
+              <button
+                onClick={() => setShowEndConfirm(false)}
+                style={{
+                  padding: '10px 24px', borderRadius: 50, border: '1.5px solid #E2E8F0',
+                  background: '#F8FAFC', color: '#475569', fontSize: 13, fontWeight: 700,
+                  cursor: 'pointer', fontFamily: 'DM Sans, sans-serif', transition: 'all .2s',
+                }}
+              >
+                No, Continue
+              </button>
+              <button
+                onClick={() => navigate(`/report/${id}`)}
+                style={{
+                  padding: '10px 24px', borderRadius: 50, border: '1.5px solid #FCA5A5',
+                  background: '#EF4444', color: '#fff', fontSize: 13, fontWeight: 700,
+                  cursor: 'pointer', fontFamily: 'DM Sans, sans-serif', transition: 'all .2s',
+                  boxShadow: '0 4px 14px rgba(239,68,68,0.25)',
+                }}
+              >
+                Yes, End Interview
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

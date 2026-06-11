@@ -19,7 +19,7 @@ const client = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: 60000, // 60s timeout (AI responses can take a while)
+  timeout: 0, // 0 means NO timeout. The browser will wait as long as the backend takes.
 });
 
 // ── Request Interceptor: Attach JWT ──
@@ -73,7 +73,7 @@ export const sessionAPI = {
   start: (data) => client.post('/sessions/start', data),
   list: () => client.get('/sessions'),
   getById: (id) => client.get(`/sessions/${id}`),
-  sendMessage: (id, content) => client.post(`/sessions/${id}/message`, { content }),
+  sendMessage: (id, content, code_submission = null) => client.post(`/sessions/${id}/message`, { content, code_submission }),
   end: (id) => client.post(`/sessions/${id}/end`),
   updateResume: (id, resume_text) => client.post(`/sessions/${id}/resume`, { resume_text }),
 };

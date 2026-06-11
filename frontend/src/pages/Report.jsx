@@ -30,7 +30,7 @@ export default function Report() {
       <div style={{ minHeight: '100vh', background: '#F5F7FA', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <div style={{ textAlign: 'center' }}>
           <div style={{ width: 48, height: 48, border: '4px solid rgba(29,185,84,0.2)', borderTopColor: '#1DB954', borderRadius: '50%', animation: 'spin .7s linear infinite', margin: '0 auto 16px' }} />
-          <p style={{ color: '#6B7A99', fontSize: 14 }}>Analyzing interview performance...</p>
+          <p style={{ color: '#6B8A6E', fontSize: 14 }}>Analyzing interview performance...</p>
         </div>
       </div>
     );
@@ -54,11 +54,11 @@ export default function Report() {
   const cache_stats = data.cache_stats || {};
 
   const dateStr = session.created_at ? new Date(session.created_at).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }) : 'Unknown Date';
-  
+
   const rawRole = session.role_type || 'role';
   const roleTypeFormatted = typeof rawRole === 'string' ? rawRole.replace('_', ' ') : 'role';
   const rawComp = session.company_type || 'company';
-  
+
   const capitalize = (s) => (typeof s === 'string' && s.length > 0) ? s.charAt(0).toUpperCase() + s.slice(1) : '';
   const title = `${capitalize(rawComp)} · ${capitalize(roleTypeFormatted)}`;
 
@@ -77,21 +77,21 @@ export default function Report() {
 
   const hiringStyles = {
     "STRONG HIRE": { bg: "#dcfce7", border: "#86efac", dot: "#15803d", text: "#15803d" },
-    "HIRE":        { bg: "#dbeafe", border: "#93c5fd", dot: "#1d4ed8", text: "#1d4ed8" },
-    "BORDERLINE":  { bg: "#fef9c3", border: "#fde047", dot: "#a16207", text: "#a16207" },
-    "NO HIRE":     { bg: "#fee2e2", border: "#fca5a5", dot: "#b91c1c", text: "#b91c1c" },
+    "HIRE": { bg: "#dbeafe", border: "#93c5fd", dot: "#1d4ed8", text: "#1d4ed8" },
+    "BORDERLINE": { bg: "#fef9c3", border: "#fde047", dot: "#a16207", text: "#a16207" },
+    "NO HIRE": { bg: "#fee2e2", border: "#fca5a5", dot: "#b91c1c", text: "#b91c1c" },
   };
 
   const hRec = report.hiring_recommendation || "HIRE";
   const hs = hiringStyles[hRec] || hiringStyles["HIRE"];
-  
+
   const oScore = report.overall_score || 0;
   const col = scoreColor(oScore);
   const circumference = 2 * Math.PI * 60;
   const offset = circumference - (oScore / 100) * circumference;
 
   const bDown = report.round_breakdown || {};
-  
+
   let rounds = [];
   // Detect if this is a V2 (3-round) report where only intro, cs (technical), and hr are populated
   if (bDown.dsa === null && bDown.project_deep_dive === null && (bDown.introduction !== null || bDown.cs_fundamentals !== null || bDown.hr_behavioral !== null)) {
@@ -112,7 +112,7 @@ export default function Report() {
   }
 
   const diffStyle = (d) => {
-    if (d === "Hard")   return { bg: "#fee2e2", text: "#dc2626" };
+    if (d === "Hard") return { bg: "#fee2e2", text: "#dc2626" };
     if (d === "Medium") return { bg: "#fff7ed", text: "#ea580c" };
     return { bg: "#f0fdf4", text: "#16a34a" };
   };
@@ -203,7 +203,7 @@ export default function Report() {
       {/* NAV */}
       <nav className="report-nav">
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{ fontSize: 20, color: '#16a34a' }}>✈</span>
+          <img src="/Images/photos/light_theme_logo.png" alt="PrepPilot Logo" style={{ height: 32 }} />
           <span style={{ fontWeight: 700, fontSize: 17, letterSpacing: '-0.3px' }}>PrepPilot</span>
           <span style={{ fontSize: 11, color: '#94a3b8', marginLeft: 2 }}>✦✦✦</span>
         </div>
@@ -213,7 +213,7 @@ export default function Report() {
       </nav>
 
       <div className="report-wrapper">
-        
+
         {/* PAGE HEADER */}
         <div style={{ textAlign: 'center', marginBottom: 28 }}>
           <p style={{ fontSize: 12, color: '#94a3b8', marginBottom: 6 }}>{dateStr}</p>
@@ -223,13 +223,13 @@ export default function Report() {
 
         {/* HERO CARD */}
         <div className="report-card report-hero">
-          
+
           {/* Circular Score */}
           <div className="score-wrap-mx" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 7, flexShrink: 0 }}>
             <div style={{ position: 'relative', width: 'clamp(140px, 15vw, 172px)', height: 'clamp(140px, 15vw, 172px)' }}>
               <svg width="100%" height="100%" viewBox="0 0 148 148" style={{ transform: 'rotate(-90deg)' }}>
-                <circle cx="74" cy="74" r="60" fill="none" stroke="#f1f5f9" strokeWidth="10"/>
-                <circle 
+                <circle cx="74" cy="74" r="60" fill="none" stroke="#f1f5f9" strokeWidth="10" />
+                <circle
                   className="score-ring"
                   cx="74" cy="74" r="60" fill="none"
                   stroke={col} strokeWidth="10" strokeLinecap="round"
@@ -361,12 +361,12 @@ export default function Report() {
               const tBorder = p.border || fallbackColors[i % fallbackColors.length].border;
               return (
                 <div key={i} style={{ borderRadius: 12, padding: '13px 15px', borderStyle: 'solid', borderWidth: 1, borderLeftWidth: 3, background: tBg, borderColor: tBorder, borderLeftColor: tColor }}>
-                  <p style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 6, color: tColor }}>{p.week || `Week ${i+1}`}</p>
+                  <p style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 6, color: tColor }}>{p.week || `Week ${i + 1}`}</p>
                   <p style={{ fontSize: 12, color: '#374151', lineHeight: 1.65 }}>{p.task}</p>
                 </div>
               );
             }) : (
-               <p style={{ fontSize: 12, color: '#64748b', gridColumn: '1 / -1' }}>Study plan preparing...</p>
+              <p style={{ fontSize: 12, color: '#64748b', gridColumn: '1 / -1' }}>Study plan preparing...</p>
             )}
           </div>
         </div>
@@ -381,12 +381,12 @@ export default function Report() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {dsa_attempts.map((d, i) => {
                 const ds = diffStyle(d.difficulty);
-                const iconBg  = d.passed ? "#dcfce7" : "#fee2e2";
+                const iconBg = d.passed ? "#dcfce7" : "#fee2e2";
                 const iconTxt = d.passed ? "#16a34a" : "#dc2626";
-                const tagBg   = d.passed ? "#dcfce7" : "#fee2e2";
-                const tagTxt  = d.passed ? "#15803d" : "#b91c1c";
+                const tagBg = d.passed ? "#dcfce7" : "#fee2e2";
+                const tagTxt = d.passed ? "#15803d" : "#b91c1c";
                 const tagLabel = d.passed ? "✓ Accepted" : "✗ Not Accepted";
-                const mark    = d.passed ? "✓" : "✗";
+                const mark = d.passed ? "✓" : "✗";
                 return (
                   <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 12, padding: '11px 14px', flexWrap: 'wrap', gap: 8 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>

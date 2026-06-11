@@ -25,14 +25,14 @@ function cleanFeedbackText(text) {
 
 function parseAIContent(content) {
   const displayContent = content.replace(/INTERVIEW_COMPLETE[\s\S]*/i, '').trim();
-  
+
   const nextQIndex = displayContent.indexOf('NEXT QUESTION:');
   if (nextQIndex !== -1) {
     let feedbackPart = displayContent.substring(0, nextQIndex).trim();
     feedbackPart = cleanFeedbackText(feedbackPart);
-    
+
     let nextQPart = displayContent.substring(nextQIndex).replace('NEXT QUESTION:', '').trim();
-    
+
     return {
       isSplit: true,
       feedbackParas: feedbackPart.split(/\n+/).filter(Boolean),
@@ -64,7 +64,7 @@ function SpeakerButton({ text, ttsSpeak, isSpeaking }) {
         borderRadius: 8,
         border: '1px solid #E2E8F0',
         background: isSpeaking ? '#F0FDF4' : '#F8FAFC',
-        color: isSpeaking ? '#16A34A' : '#6B7A99',
+        color: isSpeaking ? '#16A34A' : '#6B8A6E',
         fontSize: 14,
         cursor: 'pointer',
         transition: 'all 0.2s',
@@ -79,7 +79,7 @@ function SpeakerButton({ text, ttsSpeak, isSpeaking }) {
       onMouseLeave={e => {
         e.currentTarget.style.borderColor = '#E2E8F0';
         e.currentTarget.style.background = isSpeaking ? '#F0FDF4' : '#F8FAFC';
-        e.currentTarget.style.color = isSpeaking ? '#16A34A' : '#6B7A99';
+        e.currentTarget.style.color = isSpeaking ? '#16A34A' : '#6B8A6E';
       }}
     >
       {isSpeaking ? (
@@ -99,7 +99,7 @@ export default function ChatBubble({ role, content, provider, model, cacheStatus
     return (
       <div style={{ display: 'flex', justifyContent: 'flex-end', margin: '0 auto 16px', maxWidth: 1000, animation: 'fadeIn .35s ease' }}>
         <div style={{
-          background: '#D9FDD3', color: '#1A2B4A', padding: '12px 16px',
+          background: '#D9FDD3', color: '#1A3A1D', padding: '12px 16px',
           borderRadius: '18px 18px 4px 18px', maxWidth: '68%',
           fontSize: 13.5, lineHeight: 1.65, fontWeight: 500,
           boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
@@ -117,7 +117,7 @@ export default function ChatBubble({ role, content, provider, model, cacheStatus
     <div style={{ display: 'flex', gap: 10, margin: '0 auto 16px', maxWidth: 1000, alignItems: 'flex-start', animation: 'fadeIn .35s ease' }}>
       <div style={{ width: 32, height: 32, borderRadius: 9, background: '#1DB954', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, flexShrink: 0, marginTop: 2 }}>🎯</div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12, maxWidth: '85%' }}>
-        
+
         {isSplit ? (
           <>
             {/* Feedback Bubble */}
@@ -130,10 +130,10 @@ export default function ChatBubble({ role, content, provider, model, cacheStatus
                 // Determine if it's a heading based on the icons added by cleanFeedbackText
                 const isHeading = p.startsWith('📊') || p.startsWith('📝') || p.startsWith('💡') || p.startsWith('🎯');
                 return (
-                  <p key={i} style={{ 
-                    fontSize: 13.5, 
-                    lineHeight: 1.75, 
-                    color: isHeading ? '#1A2B4A' : '#475569', 
+                  <p key={i} style={{
+                    fontSize: 13.5,
+                    lineHeight: 1.75,
+                    color: isHeading ? '#1A3A1D' : '#475569',
                     marginTop: i > 0 ? (isHeading ? 14 : 6) : 0,
                     fontWeight: isHeading ? 700 : 400
                   }}>
@@ -152,7 +152,7 @@ export default function ChatBubble({ role, content, provider, model, cacheStatus
               <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
                 <div style={{ flex: 1 }}>
                   {nextParas.map((p, i) => (
-                    <p key={i} style={{ fontSize: 14, lineHeight: 1.75, color: '#1A2B4A', marginTop: i > 0 ? 10 : 0, fontWeight: 500 }}>
+                    <p key={i} style={{ fontSize: 14, lineHeight: 1.75, color: '#1A3A1D', marginTop: i > 0 ? 10 : 0, fontWeight: 500 }}>
                       {p}
                     </p>
                   ))}
