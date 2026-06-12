@@ -538,7 +538,7 @@ export default function Interview() {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 28px', background: '#fff', borderBottom: '1px solid #E8ECF2', flexShrink: 0 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontFamily: 'Sora, sans-serif', fontWeight: 800, fontSize: 15, color: '#1A3A1D' }}>
           <Link to="/dashboard" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 7, color: 'inherit' }}>
-            <img src="/Images/photos/light_theme_logo.png" alt="PrepPilot Logo" style={{ height: 32 }} />
+            <img src="/images/photos/light_theme_logo.png" alt="PrepPilot Logo" style={{ height: 32 }} />
             PrepPilot<sup style={{ fontSize: 8, background: '#1DB954', color: '#fff', padding: '1px 4px', borderRadius: 3, fontWeight: 700 }}>AI</sup>
           </Link>
         </div>

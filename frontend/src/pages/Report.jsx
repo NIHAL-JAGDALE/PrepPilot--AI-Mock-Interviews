@@ -203,7 +203,7 @@ export default function Report() {
       {/* NAV */}
       <nav className="report-nav">
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <img src="/Images/photos/light_theme_logo.png" alt="PrepPilot Logo" style={{ height: 32 }} />
+          <img src="/images/photos/light_theme_logo.png" alt="PrepPilot Logo" style={{ height: 32 }} />
           <span style={{ fontWeight: 700, fontSize: 17, letterSpacing: '-0.3px' }}>PrepPilot</span>
           <span style={{ fontSize: 11, color: '#94a3b8', marginLeft: 2 }}>✦✦✦</span>
         </div>

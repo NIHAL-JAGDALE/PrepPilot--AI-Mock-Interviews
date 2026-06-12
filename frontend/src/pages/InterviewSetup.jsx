@@ -106,7 +106,7 @@ export default function InterviewSetup() {
           textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 6,
           fontFamily: 'Sora, sans-serif', fontWeight: 800, fontSize: 22, color: 'var(--text)'
         }}>
-          <img src="/Images/photos/light_theme_logo.png" alt="PrepPilot Logo" style={{ height: 40 }} />
+          <img src="/images/photos/light_theme_logo.png" alt="PrepPilot Logo" style={{ height: 40 }} />
           PrepPilot<sup style={{ fontSize: 10, background: 'var(--green)', color: '#fff', padding: '2px 5px', borderRadius: 4, fontWeight: 700, verticalAlign: 'super', marginLeft: 2 }}>AI</sup>
         </Link>
         <span style={{ color: 'var(--gray2)', fontSize: 20 }}>›</span>

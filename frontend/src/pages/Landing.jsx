@@ -123,22 +123,22 @@ export default function Landing() {
 
   // Avatar image URLs from local avatars folder
   const heroAvatars = [
-    '/Images/avatars/hero-1.jpg',
-    '/Images/avatars/hero-2.jpg',
-    '/Images/avatars/hero-3.jpg',
-    '/Images/avatars/hero-4.jpg',
-    '/Images/avatars/hero-5.jpg',
+    '/images/avatars/hero-1.jpg',
+    '/images/avatars/hero-2.jpg',
+    '/images/avatars/hero-3.jpg',
+    '/images/avatars/hero-4.jpg',
+    '/images/avatars/hero-5.jpg',
   ];
   const stripPhotos = [
-    '/Images/avatars/strip-1.jpg',
-    '/Images/avatars/strip-2.jpg',
-    '/Images/avatars/strip-3.jpg',
-    '/Images/avatars/strip-4.jpg',
-    '/Images/avatars/strip-5.jpg',
-    '/Images/avatars/strip-6.jpg',
-    '/Images/avatars/strip-7.jpg',
-    '/Images/avatars/strip-8.jpg',
-    '/Images/avatars/strip-9.jpg',
+    '/images/avatars/strip-1.jpg',
+    '/images/avatars/strip-2.jpg',
+    '/images/avatars/strip-3.jpg',
+    '/images/avatars/strip-4.jpg',
+    '/images/avatars/strip-5.jpg',
+    '/images/avatars/strip-6.jpg',
+    '/images/avatars/strip-7.jpg',
+    '/images/avatars/strip-8.jpg',
+    '/images/avatars/strip-9.jpg',
   ];
 
   return (
@@ -148,7 +148,7 @@ export default function Landing() {
       {/* ─── NAV ─────────────────────────────────────────── */}
       <nav className="pp-nav" style={{ boxShadow: navScrolled ? '0 4px 24px rgba(0,0,0,0.08)' : 'none' }}>
         <a href="/" className="pp-logo text-decoration-none" style={{ textDecoration: 'none' }}>
-          <img src="/Images/photos/light_theme_logo.png" alt="PrepPilot Logo" style={{ height: 40 }} />
+          <img src="/images/photos/light_theme_logo.png" alt="PrepPilot Logo" style={{ height: 40 }} />
           PrepPilot<sup>AI</sup>
         </a>
         <div style={{ display: 'flex', gap: 36 }}>
@@ -297,7 +297,7 @@ export default function Landing() {
                 background: 'var(--gray)', borderRadius: 10, padding: 16
               }}>
                 <img
-                  src="/Images/avatars/interviewer.jpg"
+                  src="/images/avatars/interviewer.jpg"
                   alt="AI Interviewer"
                   style={{ width: 56, height: 56, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }}
                   onError={e => { e.target.style.background = 'linear-gradient(135deg,#1DB954,#0F7A35)'; e.target.src = ''; }}
@@ -356,7 +356,7 @@ export default function Landing() {
             {/* Photo column */}
             <div style={{ position: 'sticky', top: 100 }}>
               <img
-                src="/Images/photos/students-studying.jpg"
+                src="/images/photos/students-studying.jpg"
                 alt="Students preparing"
                 style={{ width: '100%', borderRadius: 20, objectFit: 'cover', height: 500, boxShadow: 'var(--shadow-lg)', display: 'block' }}
               />
@@ -365,7 +365,7 @@ export default function Landing() {
                 padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 10
               }}>
                 <img
-                  src="/Images/avatars/testimonial-nandini.jpg" alt="Student"
+                  src="/images/avatars/testimonial-nandini.jpg" alt="Student"
                   style={{ width: 32, height: 32, borderRadius: '50%', objectFit: 'cover', border: '2px solid #fff' }}
                   onError={e => { e.target.style.display = 'none'; }}
                 />
@@ -440,7 +440,7 @@ export default function Landing() {
             {/* Card 1 */}
             <div className="feat-card">
               <div style={{ width: '100%', borderRadius: 10, height: 160, overflow: 'hidden', marginBottom: 20 }}>
-                <img src="/Images/photos/interview-room.jpg" alt="Interview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                <img src="/images/photos/interview-room.jpg" alt="Interview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               </div>
               <div className="feat-icon" style={{ background: 'rgba(29,185,84,0.15)' }}>🏢</div>
               <h4 style={{ fontFamily: 'Sora, sans-serif', fontSize: 17, fontWeight: 700, color: '#fff', marginBottom: 8 }}>Company-Specific Rounds</h4>
@@ -450,7 +450,7 @@ export default function Landing() {
             {/* Card 2 */}
             <div className="feat-card">
               <div style={{ width: '100%', borderRadius: 10, height: 160, overflow: 'hidden', marginBottom: 20 }}>
-                <img src="/Images/photos/coding.jpg" alt="Coding" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                <img src="/images/photos/coding.jpg" alt="Coding" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               </div>
               <div className="feat-icon" style={{ background: 'rgba(96,165,250,0.15)' }}>⚡</div>
               <h4 style={{ fontFamily: 'Sora, sans-serif', fontSize: 17, fontWeight: 700, color: '#fff', marginBottom: 8 }}>Live DSA Compiler</h4>
@@ -460,7 +460,7 @@ export default function Landing() {
             {/* Card 3 */}
             <div className="feat-card">
               <div style={{ width: '100%', borderRadius: 10, height: 160, overflow: 'hidden', marginBottom: 20 }}>
-                <img src="/Images/photos/team.jpg" alt="Team" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                <img src="/images/photos/team.jpg" alt="Team" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               </div>
               <div className="feat-icon" style={{ background: 'rgba(245,158,11,0.15)' }}>🔁</div>
               <h4 style={{ fontFamily: 'Sora, sans-serif', fontSize: 17, fontWeight: 700, color: '#fff', marginBottom: 8 }}>Auto AI Failover</h4>
@@ -576,9 +576,9 @@ export default function Landing() {
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 24, marginTop: 56 }}>
             {[
-              { q: 'PrepPilot\'s DSA compiler round was exactly like the actual Razorpay interview. The detailed feedback after each answer helped me identify exactly where I was losing marks.', name: 'Nandini Kulkarni', role: 'SDE at Razorpay · 22 LPA', avatar: '/Images/avatars/testimonial-nandini.jpg' },
-              { q: 'I loved that it adapted to my performance — when I scored well on DSA it went harder, which is exactly what FAANG interviews do. Cracked Google after 3 weeks of PrepPilot.', name: 'Rohan Sharma', role: 'SWE at Google · 42 LPA', avatar: '/Images/avatars/testimonial-rohan.jpg' },
-              { q: 'The hiring recommendation was brutally accurate. Got "Borderline" on my first session, practiced the weak areas it identified, and got "Strong Hire" a week later. Then landed CRED.', name: 'Priya Joshi', role: 'Product Engineer at CRED · 28 LPA', avatar: '/Images/avatars/testimonial-priya.jpg' },
+              { q: 'PrepPilot\'s DSA compiler round was exactly like the actual Razorpay interview. The detailed feedback after each answer helped me identify exactly where I was losing marks.', name: 'Nandini Kulkarni', role: 'SDE at Razorpay · 22 LPA', avatar: '/images/avatars/testimonial-nandini.jpg' },
+              { q: 'I loved that it adapted to my performance — when I scored well on DSA it went harder, which is exactly what FAANG interviews do. Cracked Google after 3 weeks of PrepPilot.', name: 'Rohan Sharma', role: 'SWE at Google · 42 LPA', avatar: '/images/avatars/testimonial-rohan.jpg' },
+              { q: 'The hiring recommendation was brutally accurate. Got "Borderline" on my first session, practiced the weak areas it identified, and got "Strong Hire" a week later. Then landed CRED.', name: 'Priya Joshi', role: 'Product Engineer at CRED · 28 LPA', avatar: '/images/avatars/testimonial-priya.jpg' },
             ].map(t => (
               <div key={t.name} className="testi-card">
                 <div style={{ fontSize: 32, color: 'var(--green)', fontFamily: 'Georgia, serif', lineHeight: 1, marginBottom: 12 }}>"</div>
@@ -651,7 +651,7 @@ export default function Landing() {
         <div style={{ display: 'flex', gap: 60, marginBottom: 48 }}>
           <div style={{ flex: '0 0 260px' }}>
             <a href="/" className="pp-logo pp-logo-dark" style={{ textDecoration: 'none', display: 'flex', marginBottom: 16 }}>
-              <img src="/Images/photos/dark_theme_logo.png" alt="PrepPilot Logo" style={{ height: 40 }} />
+              <img src="/images/photos/dark_theme_logo.png" alt="PrepPilot Logo" style={{ height: 40 }} />
               PrepPilot<sup>AI</sup>
             </a>
             <p style={{ fontSize: 14, lineHeight: 1.7, color: 'rgba(255,255,255,0.4)' }}>

@@ -127,7 +127,7 @@ export default function Login() {
         {/* Logo */}
         <div className="animate-slide-down" style={{ position: 'relative', zIndex: 2 }}>
           <Link to="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 8, fontFamily: 'Sora, sans-serif', fontWeight: 800, fontSize: 22, color: '#fff' }}>
-            <img src="/Images/photos/dark_theme_logo.png" alt="PrepPilot Logo" style={{ height: 40 }} />
+            <img src="/images/photos/dark_theme_logo.png" alt="PrepPilot Logo" style={{ height: 40 }} />
             PrepPilot<sup style={{ fontSize: 10, background: 'var(--green)', color: '#fff', padding: '2px 6px', borderRadius: 4, fontWeight: 700, verticalAlign: 'super', marginLeft: 2 }}>AI</sup>
           </Link>
         </div>
@@ -192,7 +192,7 @@ export default function Login() {
             I cracked Google after 3 weeks of PrepPilot. The AI adapted to my skill level and gave brutally honest feedback — exactly what a real interviewer would.
           </p>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <img src="/Images/avatars/testimonial-rohan.jpg" alt="Rohan"
+            <img src="/images/avatars/testimonial-rohan.jpg" alt="Rohan"
               style={{ width: 38, height: 38, borderRadius: '50%', objectFit: 'cover', border: '2px solid rgba(29,185,84,0.4)' }}
               onError={e => { e.target.style.background = 'linear-gradient(135deg,#1DB954,#0F7A35)'; e.target.src = ''; }}
             />
