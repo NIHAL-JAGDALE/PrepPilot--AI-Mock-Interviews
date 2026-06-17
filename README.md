@@ -12,9 +12,13 @@
 [![Vite](https://img.shields.io/badge/Vite-Frontend-646CFF?logo=vite&logoColor=white)](https://vitejs.dev)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-[Live Demo](#) · [Features](#-features) · [Setup](#-getting-started) · [Architecture](#-architecture)
+[Live Demo](https://prep-pilot-ai-mock-interviews.vercel.app/) · [Features](#-features) · [Setup](#-getting-started) · [Architecture](#-architecture)
 
 </div>
+
+---
+### 🚀 Live Demo
+https://prep-pilot-ai-mock-interviews.vercel.app/
 
 ---
 
