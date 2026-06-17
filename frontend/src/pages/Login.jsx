@@ -98,7 +98,8 @@ export default function Login() {
       setSuccess(true);
       setTimeout(() => navigate('/dashboard'), 1200);
     } catch (err) {
-      setLoginError(err.response?.data?.error || 'Login failed. Please try again.');
+      const e = err.response?.data?.error;
+      setLoginError(typeof e === 'string' ? e : (e?.message || 'Login failed. Please try again.'));
     } finally { setLoginLoading(false); }
   };
 
@@ -111,7 +112,8 @@ export default function Login() {
       setSuccess(true);
       setTimeout(() => navigate('/dashboard'), 1200);
     } catch (err) {
-      setRegError(err.response?.data?.error || 'Registration failed. Please try again.');
+      const e = err.response?.data?.error;
+      setRegError(typeof e === 'string' ? e : (e?.message || 'Registration failed. Please try again.'));
     } finally { setRegLoading(false); }
   };
 
